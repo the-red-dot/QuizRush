@@ -168,7 +168,6 @@
             color: var(--secondary);
             text-shadow: 0 0 20px var(--primary);
             margin-bottom: 10px;
-            /* שוחזר ושודרג: גם ציפה וגם זוהר פועם */
             animation: pulse-glow 2s ease-in-out infinite alternate;
             line-height: 1;
         }
@@ -725,7 +724,7 @@
 
     <script>
         // --- 1. CONFIGURATION & STATE ---
-        const API_KEY = ""; 
+        // API KEY removed for server-side handling
         
         const GAME_CONFIG = {
             initialTime: 120, 
@@ -737,9 +736,9 @@
             randomSubjectsCount: 3,
             // Base prices now, calculation is dynamic
             baseShopPrices: {
-                time_small: 100,
-                time_big: 200,
-                lifelines: 400
+                time_small: 200,
+                time_big: 500,
+                lifelines: 800
             }
         };
 
@@ -829,7 +828,7 @@
         }
         const sound = new SoundManager();
 
-        // --- 3. GEMINI API SERVICE ---
+        // --- 3. GEMINI API SERVICE (Via Vercel Function) ---
         async function fetchQuestionsFromAI(count, currentStage) {
             const shuffledSubjects = [...SUBJECTS].sort(() => 0.5 - Math.random());
             const selectedSubjects = shuffledSubjects.slice(0, GAME_CONFIG.randomSubjectsCount);
@@ -855,17 +854,34 @@
             `;
 
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`, {
+                // Modified for Vercel Serverless Function Proxy
+                const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    body: JSON.stringify({ prompt }) 
                 });
 
+                if (!response.ok) throw new Error("Server error");
+
                 const data = await response.json();
-                const text = data.candidates[0].content.parts[0].text;
-                const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                const questions = JSON.parse(jsonStr);
-                return questions;
+                
+                // Assuming server returns the cleaned JSON array directly or structure we parse
+                // If the server returns standard gemini response, we parse. 
+                // Let's assume server returns { candidates: [...] } or just the array if we clean it there.
+                // For safety, let's keep parsing logic here similar to before if server forwards raw gemini response.
+                
+                // If your server cleans it, great. If not, we parse:
+                if (data.candidates) {
+                     const text = data.candidates[0].content.parts[0].text;
+                     const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                     return JSON.parse(jsonStr);
+                }
+                
+                // If server returned cleaned array directly
+                if (Array.isArray(data)) return data;
+                
+                // Fallback attempt to parse text if needed
+                return data; 
 
             } catch (error) {
                 console.error("AI Error:", error);
@@ -1225,9 +1241,9 @@
             const base = GAME_CONFIG.baseShopPrices;
             
             // Logic: Base Price + (Stage * Multiplier)
-            if (type === 'time_small') return base.time_small + ((s - 1) * 25); 
-            if (type === 'time_big') return base.time_big + ((s - 1) * 50);
-            if (type === 'lifelines') return base.lifelines + ((s - 1) * 100);
+            if (type === 'time_small') return base.time_small + ((s - 1) * 50); 
+            if (type === 'time_big') return base.time_big + ((s - 1) * 100);
+            if (type === 'lifelines') return base.lifelines + ((s - 1) * 200);
             return 9999;
         }
 
