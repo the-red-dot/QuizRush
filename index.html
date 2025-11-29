@@ -766,16 +766,16 @@
     </div>
 
     <script>
-        // --- 1. CONFIGURATION & STATE ---
+// --- 1. CONFIGURATION & STATE ---
         // API KEY removed for server-side handling
         
         const GAME_CONFIG = {
-            initialTime: 120, 
+            initialTime: 60, 
             baseMoney: 100,
             moneyMultiplier: 1.2, 
             timeBonusBase: 7, 
-            timePenaltyBase: 3, 
-            questionsPerStage: 15, 
+            timePenaltyBase: 4, 
+            questionsPerStage: 30, // <--- עודכן ל-30 שאלות לקריאה יעילה יותר
             randomSubjectsCount: 3,
             // Base prices now, calculation is dynamic
             baseShopPrices: {
@@ -839,7 +839,7 @@
             unlockedAchievements: []
         };
 
-        let audioCtx = null; 
+        let audioCtx = null;
 
         // --- 2. AUDIO SYSTEM ---
         class SoundManager {
@@ -1487,5 +1487,6 @@
     </script>
 </body>
 </html>
+
 
 
