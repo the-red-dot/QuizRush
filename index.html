@@ -1,1489 +1,1490 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מירוץ הידע - Trivia Rush</title>
-    <!-- ייבוא גופנים -->
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&family=Rubik+Glitch&display=swap" rel="stylesheet">
-    <!-- אייקונים -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- אפקט קונפטי -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מירוץ הידע - Trivia Rush</title>
+    <!-- ייבוא גופנים -->
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&family=Rubik+Glitch&display=swap" rel="stylesheet">
+    <!-- אייקונים -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- אפקט קונפטי -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    <style>
-        :root {
-            --primary: #7000ff;
-            --secondary: #00f0ff;
-            --success: #00ff9d;
-            --danger: #ff0055;
-            --warning: #ffcc00;
-            --shop: #ff00cc;
-            --bg-dark: #0a0a12;
-            --bg-card: #161625;
-            --text-main: #ffffff;
-            --text-muted: #a0a0b0;
-        }
+    <style>
+        :root {
+            --primary: #7000ff;
+            --secondary: #00f0ff;
+            --success: #00ff9d;
+            --danger: #ff0055;
+            --warning: #ffcc00;
+            --shop: #ff00cc;
+            --bg-dark: #0a0a12;
+            --bg-card: #161625;
+            --text-main: #ffffff;
+            --text-muted: #a0a0b0;
+        }
 
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Heebo', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000000 100%);
-        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Heebo', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000000 100%);
+        }
 
-        /* אנימציות */
-        @keyframes pulse-glow {
-            0% { text-shadow: 0 0 10px var(--primary); transform: scale(1); }
-            50% { text-shadow: 0 0 25px var(--secondary), 0 0 10px white; transform: scale(1.02); }
-            100% { text-shadow: 0 0 10px var(--primary); transform: scale(1); }
-        }
+        /* אנימציות */
+        @keyframes pulse-glow {
+            0% { text-shadow: 0 0 10px var(--primary); transform: scale(1); }
+            50% { text-shadow: 0 0 25px var(--secondary), 0 0 10px white; transform: scale(1.02); }
+            100% { text-shadow: 0 0 10px var(--primary); transform: scale(1); }
+        }
 
-        @keyframes float-up {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
-        }
+        @keyframes float-up {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+        }
 
-        @keyframes float-center {
-            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-            20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-            80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -80%) scale(1.5); opacity: 0; }
-        }
+        @keyframes float-center {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -80%) scale(1.5); opacity: 0; }
+        }
 
-        @keyframes slideIn {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        @keyframes popIn {
-            0% { transform: scale(0); opacity: 0; }
-            80% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        @keyframes slideIn {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
 
-        /* רכיבי UI כלליים */
-        .screen {
-            display: none;
-            width: 100%;
-            max-width: 600px;
-            height: 100%;
-            flex-direction: column;
-            padding: 20px;
-            position: relative;
-            z-index: 10;
-        }
+        /* רכיבי UI כלליים */
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 600px;
+            height: 100%;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
 
-        .screen.active {
-            display: flex;
-        }
+        .screen.active {
+            display: flex;
+        }
 
-        .btn {
-            background: linear-gradient(135deg, var(--primary), #4c00b0);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(112, 0, 255, 0.4);
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            position: relative;
-            overflow: hidden;
-        }
+        .btn {
+            background: linear-gradient(135deg, var(--primary), #4c00b0);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(112, 0, 255, 0.4);
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
 
-        .btn:active {
-            transform: scale(0.95);
-        }
+        .btn:active {
+            transform: scale(0.95);
+        }
 
-        .btn:disabled {
-            filter: grayscale(1);
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .btn:disabled {
+            filter: grayscale(1);
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--secondary);
-            color: var(--secondary);
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
-        }
-        
-        .btn-shop {
-            background: linear-gradient(135deg, #ff00cc, #990066);
-            box-shadow: 0 4px 15px rgba(255, 0, 204, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
+        }
+        
+        .btn-shop {
+            background: linear-gradient(135deg, #ff00cc, #990066);
+            box-shadow: 0 4px 15px rgba(255, 0, 204, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
-        .name-input {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid var(--primary);
-            color: white;
-            padding: 15px;
-            font-size: 1.2rem;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            width: 80%;
-            text-align: center;
-            font-family: 'Heebo', sans-serif;
-            outline: none;
-            transition: all 0.3s;
-        }
+        .name-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--primary);
+            color: white;
+            padding: 15px;
+            font-size: 1.2rem;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            width: 80%;
+            text-align: center;
+            font-family: 'Heebo', sans-serif;
+            outline: none;
+            transition: all 0.3s;
+        }
 
-        .name-input:focus {
-            box-shadow: 0 0 15px var(--primary);
-            border-color: var(--secondary);
-        }
+        .name-input:focus {
+            box-shadow: 0 0 15px var(--primary);
+            border-color: var(--secondary);
+        }
 
-        /* מסך פתיחה */
-        #menu-screen {
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
+        /* מסך פתיחה */
+        #menu-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
 
-        .game-title {
-            font-family: 'Rubik Glitch', sans-serif;
-            font-size: 4rem;
-            color: var(--secondary);
-            text-shadow: 0 0 20px var(--primary);
-            margin-bottom: 10px;
-            animation: pulse-glow 2s ease-in-out infinite alternate;
-            line-height: 1;
-        }
+        .game-title {
+            font-family: 'Rubik Glitch', sans-serif;
+            font-size: 4rem;
+            color: var(--secondary);
+            text-shadow: 0 0 20px var(--primary);
+            margin-bottom: 10px;
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+            line-height: 1;
+        }
 
-        .subtitle {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            margin-bottom: 40px;
-        }
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
 
-        /* מסך משחק */
-        #game-screen {
-            justify-content: space-between;
-        }
+        /* מסך משחק */
+        #game-screen {
+            justify-content: space-between;
+        }
 
-        .hud {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(22, 22, 37, 0.9);
-            padding: 10px 15px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            margin-bottom: 10px;
-        }
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(22, 22, 37, 0.9);
+            padding: 10px 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 10px;
+        }
 
-        .stat-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
 
-        .stat-label { font-size: 0.7rem; color: var(--text-muted); }
-        .stat-value { font-size: 1.2rem; font-weight: bold; font-family: monospace; }
-        
-        .timer-container {
-            width: 100%;
-            height: 8px;
-            background: #333;
-            border-radius: 5px;
-            margin-top: 5px;
-            overflow: hidden;
-            position: relative;
-        }
+        .stat-label { font-size: 0.7rem; color: var(--text-muted); }
+        .stat-value { font-size: 1.2rem; font-weight: bold; font-family: monospace; }
+        
+        .timer-container {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+            position: relative;
+        }
 
-        .timer-bar {
-            height: 100%;
-            background: var(--success);
-            width: 100%;
-            transition: width 0.1s linear, background-color 0.3s;
-        }
+        .timer-bar {
+            height: 100%;
+            background: var(--success);
+            width: 100%;
+            transition: width 0.1s linear, background-color 0.3s;
+        }
 
-        .timer-bar.danger { background: var(--danger); animation: pulse-red 0.5s infinite; }
+        .timer-bar.danger { background: var(--danger); animation: pulse-red 0.5s infinite; }
 
-        @keyframes pulse-red {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
+        @keyframes pulse-red {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
 
-        .progress-text {
-            text-align: center;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-        }
+        .progress-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
 
-        .question-card {
-            background: var(--bg-card);
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            margin-bottom: 10px;
-            position: relative;
-            border: 1px solid rgba(112, 0, 255, 0.2);
-            animation: slideIn 0.5s ease-out;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+        .question-card {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+            position: relative;
+            border: 1px solid rgba(112, 0, 255, 0.2);
+            animation: slideIn 0.5s ease-out;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
 
-        .question-text {
-            font-size: 1.3rem;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 20px;
-            line-height: 1.3;
-        }
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
 
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
 
-        .option-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            color: white;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: right;
-            position: relative;
-        }
+        .option-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: right;
+            position: relative;
+        }
 
-        .option-btn:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--primary);
-        }
+        .option-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+        }
 
-        .option-btn.correct {
-            background: rgba(0, 255, 157, 0.2);
-            border-color: var(--success);
-            color: var(--success);
-        }
+        .option-btn.correct {
+            background: rgba(0, 255, 157, 0.2);
+            border-color: var(--success);
+            color: var(--success);
+        }
 
-        .option-btn.wrong {
-            background: rgba(255, 0, 85, 0.2);
-            border-color: var(--danger);
-            color: var(--danger);
-        }
+        .option-btn.wrong {
+            background: rgba(255, 0, 85, 0.2);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
 
-        .bottom-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-            gap: 10px;
-        }
+        .bottom-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            gap: 10px;
+        }
 
-        .lifelines {
-            display: flex;
-            justify-content: flex-start;
-            gap: 10px;
-        }
+        .lifelines {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+        }
 
-        .lifeline-btn {
-            background: #2a2a3d;
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
+        .lifeline-btn {
+            background: #2a2a3d;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
 
-        .lifeline-btn:hover:not(:disabled) { transform: translateY(-3px); background: #3a3a4d; }
-        .lifeline-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .lifeline-badge {
-            position: absolute;
-            top: -5px; right: -5px;
-            background: var(--danger);
-            color: white;
-            font-size: 0.7rem;
-            width: 18px; height: 18px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .lifeline-btn:hover:not(:disabled) { transform: translateY(-3px); background: #3a3a4d; }
+        .lifeline-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .lifeline-badge {
+            position: absolute;
+            top: -5px; right: -5px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.7rem;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-        /* Shop Modal specific styles */
-        .shop-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-        }
+        /* Shop Modal specific styles */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
 
-        .shop-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: 0.2s;
-        }
-        
-        .shop-item:hover { border-color: var(--shop); background: rgba(255, 0, 204, 0.1); }
+        .shop-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.2s;
+        }
+        
+        .shop-item:hover { border-color: var(--shop); background: rgba(255, 0, 204, 0.1); }
 
-        .shop-item-details { text-align: right; }
-        .shop-item-title { font-weight: bold; font-size: 1.1rem; }
-        .shop-item-desc { font-size: 0.8rem; color: var(--text-muted); }
-        .shop-item-price { font-family: monospace; font-weight: bold; color: var(--warning); font-size: 1.2rem; }
+        .shop-item-details { text-align: right; }
+        .shop-item-title { font-weight: bold; font-size: 1.1rem; }
+        .shop-item-desc { font-size: 0.8rem; color: var(--text-muted); }
+        .shop-item-price { font-family: monospace; font-weight: bold; color: var(--warning); font-size: 1.2rem; }
 
-        /* מסך טעינה */
-        #loading-screen {
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            background: rgba(0,0,0,0.95);
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 100;
-        }
+        /* מסך טעינה */
+        #loading-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: rgba(0,0,0,0.95);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 100;
+        }
 
-        .loader {
-            width: 60px;
-            height: 60px;
-            border: 5px solid var(--primary);
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            animation: rotation 1s linear infinite;
-            margin-bottom: 20px;
-        }
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid var(--primary);
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+            margin-bottom: 20px;
+        }
 
-        @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-        .loading-text {
-            font-size: 1.5rem;
-            color: var(--secondary);
-            margin-bottom: 10px;
-        }
-        
-        .loading-tip {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            max-width: 80%;
-            margin: 0 auto;
-        }
+        .loading-text {
+            font-size: 1.5rem;
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+        
+        .loading-tip {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            max-width: 80%;
+            margin: 0 auto;
+        }
 
-        /* מסך סיום */
-        #gameover-screen {
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
+        /* מסך סיום */
+        #gameover-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
 
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            padding: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
 
-        /* AI Thinking Bubble */
-        .ai-thinking {
-            position: absolute;
-            bottom: 90px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(20, 20, 40, 0.95);
-            border: 1px solid var(--secondary);
-            padding: 15px;
-            border-radius: 15px;
-            color: #fff;
-            font-size: 0.95rem;
-            display: none;
-            z-index: 20;
-            max-width: 90%;
-            text-align: right;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-            line-height: 1.5;
-        }
+        /* AI Thinking Bubble */
+        .ai-thinking {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 20, 40, 0.95);
+            border: 1px solid var(--secondary);
+            padding: 15px;
+            border-radius: 15px;
+            color: #fff;
+            font-size: 0.95rem;
+            display: none;
+            z-index: 20;
+            max-width: 90%;
+            text-align: right;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            line-height: 1.5;
+        }
 
-        /* Modals */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 200;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(5px);
-        }
-        
-        .modal-overlay.active { display: flex; animation: popIn 0.3s ease-out; }
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 200;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-overlay.active { display: flex; animation: popIn 0.3s ease-out; }
 
-        .modal-content {
-            background: var(--bg-card);
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            border-radius: 20px;
-            border: 1px solid var(--primary);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 0 50px rgba(112, 0, 255, 0.3);
-        }
+        .modal-content {
+            background: var(--bg-card);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            border-radius: 20px;
+            border: 1px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(112, 0, 255, 0.3);
+        }
 
-        .modal-header {
-            background: linear-gradient(90deg, #2a0050, #1a1a2e);
-            padding: 15px;
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--secondary);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            position: relative;
-        }
+        .modal-header {
+            background: linear-gradient(90deg, #2a0050, #1a1a2e);
+            padding: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--secondary);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+        }
 
-        .modal-back-btn {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 1.2rem;
-            display: none;
-        }
+        .modal-back-btn {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: none;
+        }
 
-        .modal-body {
-            padding: 20px;
-            overflow-y: auto;
-        }
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+        }
 
-        .modal-footer {
-            padding: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
+        .modal-footer {
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
 
-        .achievement-item {
-            background: rgba(255,255,255,0.05);
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            opacity: 0.5; /* Locked state */
-        }
+        .achievement-item {
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0.5; /* Locked state */
+        }
 
-        .achievement-item.unlocked {
-            opacity: 1;
-            background: linear-gradient(90deg, rgba(112, 0, 255, 0.2), transparent);
-            border: 1px solid var(--primary);
-        }
+        .achievement-item.unlocked {
+            opacity: 1;
+            background: linear-gradient(90deg, rgba(112, 0, 255, 0.2), transparent);
+            border: 1px solid var(--primary);
+        }
 
-        .achievement-icon { font-size: 1.5rem; }
+        .achievement-icon { font-size: 1.5rem; }
 
-        .leaderboard-item {
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            border-bottom: 1px solid #333; 
-            padding: 10px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .leaderboard-item:hover { background: rgba(255,255,255,0.05); }
+        .leaderboard-item {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            border-bottom: 1px solid #333; 
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .leaderboard-item:hover { background: rgba(255,255,255,0.05); }
 
-        /* Floating Text Specifics */
-        .float-text {
-            position: absolute;
-            font-weight: bold;
-            pointer-events: none;
-            z-index: 100;
-            white-space: nowrap;
-            text-shadow: 0 0 5px rgba(0,0,0,0.8);
-        }
-        
-        .float-up { animation: float-up 1s ease-out forwards; }
-        .float-center { animation: float-center 2s ease-out forwards; font-size: 2rem; }
+        /* Floating Text Specifics */
+        .float-text {
+            position: absolute;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 100;
+            white-space: nowrap;
+            text-shadow: 0 0 5px rgba(0,0,0,0.8);
+        }
+        
+        .float-up { animation: float-up 1s ease-out forwards; }
+        .float-center { animation: float-center 2s ease-out forwards; font-size: 2rem; }
 
-        /* רספונסיביות */
-        @media (max-width: 480px) {
-            .game-title { font-size: 3rem; }
-            .options-grid { grid-template-columns: 1fr; }
-            .btn { width: 100%; }
-            .name-input { width: 100%; }
-        }
-    </style>
+        /* רספונסיביות */
+        @media (max-width: 480px) {
+            .game-title { font-size: 3rem; }
+            .options-grid { grid-template-columns: 1fr; }
+            .btn { width: 100%; }
+            .name-input { width: 100%; }
+        }
+    </style>
 </head>
 <body>
 
-    <!-- Audio Context (Hidden) -->
-    <div id="audio-controller"></div>
-
-    <!-- Achievements / Leaderboard Modal -->
-    <div id="leaderboard-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button class="modal-back-btn" id="modal-back-btn" onclick="backToLeaderboard()"><i data-lucide="arrow-right"></i></button>
-                <span id="modal-title">🏆 היכל התהילה</span>
-            </div>
-            <div class="modal-body" id="modal-body-content">
-                <!-- Content injected via JS -->
-            </div>
-            <div class="modal-footer">
-                <button class="btn" style="width: auto; padding: 10px 30px;" onclick="closeModal('leaderboard-modal')">סגור</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Shop Modal -->
-    <div id="shop-modal" class="modal-overlay">
-        <div class="modal-content" style="border-color: var(--shop);">
-            <div class="modal-header" style="color: var(--shop);">🛒 חנות המשחק</div>
-            <div class="modal-body">
-                <div style="text-align:center; margin-bottom:15px; color:var(--text-muted);">המשחק נעצר. קנה בחוכמה! (המחירים עולים בכל שלב)</div>
-                <div class="shop-grid">
-                    <button class="shop-item" onclick="buyItem('time_small')">
-                        <div class="shop-item-details">
-                            <div class="shop-item-title">⏰ תוספת זמן קצרה</div>
-                            <div class="shop-item-desc">+10 שניות</div>
-                        </div>
-                        <div class="shop-item-price" id="shop-price-time-small">₪500</div>
-                    </button>
-
-                    <button class="shop-item" onclick="buyItem('time_big')">
-                        <div class="shop-item-details">
-                            <div class="shop-item-title">⏳ תוספת זמן גדולה</div>
-                            <div class="shop-item-desc">+30 שניות</div>
-                        </div>
-                        <div class="shop-item-price" id="shop-price-time-big">₪1,200</div>
-                    </button>
-
-                    <button class="shop-item" onclick="buyItem('lifelines')">
-                        <div class="shop-item-details">
-                            <div class="shop-item-title">❤️ מילוי עזרות</div>
-                            <div class="shop-item-desc">מחזיר את כל העזרות</div>
-                        </div>
-                        <div class="shop-item-price" id="shop-price-lifelines">₪2,000</div>
-                    </button>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeShop()">חזור למשחק</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Instructions Modal -->
-    <div id="instructions-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">📜 איך משחקים?</div>
-            <div class="modal-body" style="text-align: right; line-height: 1.6;">
-                <div style="margin-bottom: 15px;">
-                    <h3 style="color: var(--secondary); margin-bottom: 5px;">⚡ המטרה</h3>
-                    לענות על כמה שיותר שאלות, לצבור כסף ולשרוד כמה שיותר זמן!
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <h3 style="color: var(--warning); margin-bottom: 5px;">⏳ חוקי בסיס</h3>
-                    <ul style="padding-right: 20px;">
-                        <li>הזמן הוא המשאב הכי חשוב (נגמר = הפסד).</li>
-                        <li>תשובה נכונה מעניקה <b>בונוס זמן וכסף</b>.</li>
-                        <li>תשובה שגויה גוררת <b>קנס זמן</b>.</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <h3 style="color: var(--shop); margin-bottom: 5px;">🛒 החנות</h3>
-                    אפשר להמיר את הכסף שצברתם לזמן נוסף או למילוי עזרות.
-                    <br><small>המחירים עולים ככל שמתקדמים בשלבים!</small>
-                </div>
-
-                <div>
-                    <h3 style="color: var(--success); margin-bottom: 5px;">🆘 גלגלי הצלה</h3>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="margin-bottom: 5px;">🌗 <b>50:50</b> - מסיר 2 תשובות שגויות.</li>
-                        <li style="margin-bottom: 5px;">🤖 <b>AI</b> - מתייעץ עם הבינה המלאכותית (לא תמיד צודקת!).</li>
-                        <li>❄️ <b>הקפאה</b> - עוצר את הזמן ל-5 שניות.</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn" style="width: auto; padding: 10px 30px;" onclick="closeModal('instructions-modal')">הבנתי, יאללה!</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- מסך תפריט ראשי -->
-    <div id="menu-screen" class="screen active">
-        <div class="game-title">מירוץ הידע</div>
-        <div class="subtitle">הזמן הוא הכסף שלך. אל תבזבז אותו.</div>
-        
-        <input type="text" id="player-name-input" class="name-input" placeholder="הכנס את שמך..." maxlength="15">
-
-        <button class="btn" onclick="startGame()">
-            <i data-lucide="play"></i> התחל משחק
-        </button>
-        <button class="btn btn-outline" onclick="openLeaderboard()">
-            <i data-lucide="trophy"></i> הישגים ושיאים
-        </button>
-        <button class="btn btn-outline" onclick="openInstructions()">
-            <i data-lucide="book-open"></i> הוראות משחק
-        </button>
-        
-        <div style="margin-top: 30px; font-size: 0.8rem; color: #555;">
-            מופעל ע"י Gemini AI
-        </div>
-    </div>
-
-    <!-- מסך טעינה (בין שלבים) -->
-    <div id="loading-screen" class="screen">
-        <div class="loader"></div>
-        <div class="loading-text" id="loading-msg">מכין את המוח...</div>
-        <div class="loading-tip" id="loading-tip">טיפ: שאלות קשות נותנות פחות זמן אבל יותר כסף!</div>
-    </div>
-
-    <!-- מסך משחק -->
-    <div id="game-screen" class="screen">
-        <div class="hud">
-            <div class="stat-box" id="hud-time">
-                <span class="stat-label">זמן</span>
-                <span class="stat-value" id="time-display">120.0</span>
-            </div>
-            <div class="stat-box" id="hud-stage">
-                <span class="stat-label">שלב</span>
-                <span class="stat-value" id="stage-display">1</span>
-            </div>
-            <div class="stat-box" id="hud-money">
-                <span class="stat-label">קופה</span>
-                <span class="stat-value" style="color: var(--success);">₪<span id="score-display">0</span></span>
-            </div>
-        </div>
-        
-        <div class="timer-container">
-            <div class="timer-bar" id="timer-bar"></div>
-        </div>
-        <div class="progress-text" id="stage-progress">שאלה 1 מתוך 15</div>
-
-        <div class="question-card">
-            <div id="question-category" style="position: absolute; top: -10px; right: 20px; background: var(--primary); padding: 2px 10px; border-radius: 10px; font-size: 0.8rem;">כללי</div>
-            <div class="question-text" id="question-text">
-                השאלה תופיע כאן...
-            </div>
-            <div class="options-grid" id="options-container">
-                <!-- כפתורי תשובות -->
-            </div>
-        </div>
-
-        <div class="ai-thinking" id="ai-bubble">Gemini חושב...</div>
-
-        <div class="bottom-controls">
-            <div class="lifelines">
-                <button class="lifeline-btn" id="btn-5050" onclick="useLifeline('5050')" title="50/50">
-                    <span class="lifeline-badge">1</span>
-                    <span style="font-weight: bold;">50:50</span>
-                </button>
-                <button class="lifeline-btn" id="btn-ai" onclick="useLifeline('ai')" title="שאל את Gemini">
-                    <span class="lifeline-badge">1</span>
-                    <i data-lucide="bot"></i>
-                </button>
-                <button class="lifeline-btn" id="btn-freeze" onclick="useLifeline('freeze')" title="הקפאת זמן">
-                    <span class="lifeline-badge">1</span>
-                    <i data-lucide="snowflake"></i>
-                </button>
-            </div>
-            <button class="btn btn-shop" onclick="openShop()" style="width: auto; border-radius: 50%; width: 60px; height: 60px; padding: 0;">
-                <i data-lucide="shopping-cart"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- מסך סיום -->
-    <div id="gameover-screen" class="screen">
-        <h1 style="font-size: 3rem; color: var(--danger); margin: 0;">נגמר הזמן!</h1>
-        <p class="subtitle" id="gameover-reason">השעון הגיע ל-0</p>
-        
-        <div style="background: var(--bg-card); padding: 20px; border-radius: 15px; width: 100%; margin-bottom: 20px;">
-            <div class="stat-row">
-                <span>שחקן:</span>
-                <span style="color: var(--secondary); font-weight: bold;" id="final-name">אורח</span>
-            </div>
-            <div class="stat-row">
-                <span>סכום סופי:</span>
-                <span style="color: var(--success); font-weight: bold;" id="final-score">₪0</span>
-            </div>
-            <div class="stat-row">
-                <span>שלב שהגעת:</span>
-                <span id="final-stage">1</span>
-            </div>
-            <div class="stat-row">
-                <span>שאלות נכונות:</span>
-                <span id="final-correct">0</span>
-            </div>
-        </div>
-
-        <button class="btn" onclick="returnToMenu()">
-            <i data-lucide="home"></i> תפריט ראשי
-        </button>
-    </div>
-
-    <script>
-// --- 1. CONFIGURATION & STATE ---
-        // API KEY removed for server-side handling
-        
-        const GAME_CONFIG = {
-            initialTime: 60, 
-            baseMoney: 100,
-            moneyMultiplier: 1.2, 
-            timeBonusBase: 7, 
-            timePenaltyBase: 4, 
-            questionsPerStage: 30, // <--- עודכן ל-30 שאלות לקריאה יעילה יותר
-            randomSubjectsCount: 3,
-            // Base prices now, calculation is dynamic
-            baseShopPrices: {
-                time_small: 100,
-                time_big: 200,
-                lifelines: 400
-            }
-        };
-
-        const SUBJECTS = [
-            "ידע כללי וטריוויה", "עובדות מעניינות (הידעת?)", "מושגים בסיסיים בעולם",
-            "היסטוריה של מדינת ישראל", "גאוגרפיה של ישראל", "תרבות ישראלית וסלנג", 
-            "דמויות ישראליות חשובות", "צה\"ל ומלחמות ישראל", "מוסדות המדינה",
-            "דגלים וערי בירה", "גאוגרפיה עולמית", "אתרים מפורסמים בעולם",
-            "תרבויות ומנהגים", "חגים בעולם", "אוקיינוסים ויבשות",
-            "סרטים וקולנוע (Marvel/Disney)", "סדרות טלוויזיה מפורסמות", "מוזיקה ישראלית ובינלאומית",
-            "זיהוי שירים לפי מילים", "אנימציה ואנימה", "סלבס ורכילות",
-            "משחקי מחשב (Fortnite, Minecraft)", "יוטיוברים וסטרימרים", "טרנדים בטיקטוק",
-            "אמוג'ים ומשמעותם", "סלנג רשת ומימים (Memes)",
-            "בעלי חיים וטבע", "גוף האדם ורפואה", "אסטרונומיה וחלל",
-            "המצאות וטכנולוגיה", "פיזיקה וכימיה בסיסית", "מתמטיקה ולוגיקה",
-            "מאכלים מכל העולם", "מטבח ישראלי", "כדורגל עולמי (מונדיאל, אלופות)",
-            "כדורגל ישראלי", "כדורסל (NBA/יורוליג)", "שיאי ספורט",
-            "חידות 'מה אני?'", "חידות קומבינטוריות קלות", "תרחישי חשיבה ולוגיקה", 
-            "חידות בלשיות (מי גנב את היהלום?)", "סדרות לוגיות לא מספריות",
-            "עובדות מוזרות (נכון/לא נכון)", "מיתוסים ואמונות תפלות", "טרנדים וסלבס - אמת או שקר?",
-            "השלמת פתגמים ומטבעות לשון", "השלמת משפטים משירים מוכרים", "ציטוטים מסרטים וסדרות",
-            "חשבון מהיר וחישוב מנטלי", "אחוזים ובעיות מילוליות", "סדר פעולות חשבון",
-            "גאומטריה וצורות", "סדרות מתמטיות",
-            "מבחני IQ - סדרות צורות", "אנלוגיות מילוליות (יחסים)", "יוצא דופן"
-        ];
-
-        const ACHIEVEMENTS_LIST = [
-            { id: 'correct_100', icon: '🧠', title: 'מוח על', desc: 'ענית על 100 שאלות נכונות' },
-            { id: 'stage_10', icon: '🚀', title: 'טייס חלל', desc: 'הגעת לשלב 10' },
-            { id: 'streak_10', icon: '🔥', title: 'בלתי ניתן לעצירה', desc: 'רצף של 10 תשובות נכונות' },
-            { id: 'survivor', icon: '⏱️', title: 'השורד האחרון', desc: 'ניצחת שלב עם פחות משנייה אחת' },
-            { id: 'rich', icon: '💎', title: 'מיליונר', desc: 'צברת מעל ₪10,000' },
-            { id: 'spender', icon: '💸', title: 'בזבזן', desc: 'קנית פריט בחנות' },
-            { id: 'time_lord', icon: '⏳', title: 'אדון הזמן', desc: 'צברת מעל 200 שניות על השעון' },
-            { id: 'phoenix', icon: '🦅', title: 'עוף החול', desc: 'חזרת למשחק ממתחת ל-5 שניות' }
-        ];
-
-        let state = {
-            isPlaying: false,
-            playerName: "אורח",
-            timeLeft: 120,
-            score: 0,
-            stage: 1, 
-            totalCorrect: 0, 
-            currentStageCorrect: 0,
-            questionInStageIndex: 0, 
-            currentQuestion: null,
-            questionQueue: [],
-            streak: 0,
-            lifelines: { '5050': 1, 'ai': 1, 'freeze': 1 },
-            isFrozen: false,
-            isShopOpen: false,
-            lastFrameTime: 0,
-            questionStartTime: 0,
-            unlockedAchievements: []
-        };
-
-        let audioCtx = null;
-
-        // --- 2. AUDIO SYSTEM ---
-        class SoundManager {
-            constructor() { this.init(); }
-            init() {
-                window.AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!audioCtx) audioCtx = new AudioContext();
-            }
-            playTone(freq, type, duration) {
-                if (!audioCtx) this.init();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration);
-            }
-            playCorrect() { this.playTone(600, 'sine', 0.1); setTimeout(() => this.playTone(800, 'sine', 0.2), 100); }
-            playWrong() { this.playTone(150, 'sawtooth', 0.3); setTimeout(() => this.playTone(100, 'sawtooth', 0.4), 150); }
-            playTick() { this.playTone(800, 'square', 0.05); }
-            playWin() { [400, 500, 600, 800].forEach((freq, i) => setTimeout(() => this.playTone(freq, 'triangle', 0.2), i * 100)); }
-            playSpeedBonus() { this.playTone(1000, 'sine', 0.1); setTimeout(() => this.playTone(1500, 'sine', 0.1), 100); }
-            playCash() { this.playTone(1200, 'sine', 0.1); setTimeout(() => this.playTone(2000, 'square', 0.2), 100); }
-        }
-        const sound = new SoundManager();
-
-        // --- 3. GEMINI API SERVICE (Via Vercel Function) ---
-        async function fetchQuestionsFromAI(count, currentStage) {
-            const shuffledSubjects = [...SUBJECTS].sort(() => 0.5 - Math.random());
-            const selectedSubjects = shuffledSubjects.slice(0, GAME_CONFIG.randomSubjectsCount);
-            
-            const difficulty = currentStage < 3 ? "קל" : (currentStage < 7 ? "בינוני" : "קשה ומאתגר");
-            
-            const prompt = `
-            צור ${count} שאלות טריוויה בעברית (לרוב אמריקאיות עם 4 תשובות).
-            עבור שאלות "נכון/לא נכון", ספק 2-4 אפשרויות.
-            ערבב שאלות מהנושאים הבאים: ${selectedSubjects.join(", ")}.
-            רמת קושי: ${difficulty}.
-            
-            החזר JSON בלבד (מערך אובייקטים):
-            [
-              {
-                "question": "שאלה?",
-                "options": ["תשובה1", "תשובה2", "תשובה3", "תשובה4"],
-                "correctIndex": 0,
-                "hint": "רמז קצר",
-                "category": "שם הנושא הרלוונטי"
-              }
-            ]
-            `;
-
-            try {
-                // Modified for Vercel Serverless Function Proxy
-                const response = await fetch('/api/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt }) 
-                });
-
-                if (!response.ok) throw new Error("Server error");
-
-                const data = await response.json();
-                
-                // Assuming server returns the cleaned JSON array directly or structure we parse
-                // If the server returns standard gemini response, we parse. 
-                // Let's assume server returns { candidates: [...] } or just the array if we clean it there.
-                // For safety, let's keep parsing logic here similar to before if server forwards raw gemini response.
-                
-                // If your server cleans it, great. If not, we parse:
-                if (data.candidates) {
-                     const text = data.candidates[0].content.parts[0].text;
-                     const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                     return JSON.parse(jsonStr);
-                }
-                
-                // If server returned cleaned array directly
-                if (Array.isArray(data)) return data;
-                
-                // Fallback attempt to parse text if needed
-                return data; 
-
-            } catch (error) {
-                console.error("AI Error:", error);
-                return Array(count).fill({
-                    question: "שאלה לדוגמה (שגיאת רשת)",
-                    options: ["אופציה 1", "אופציה 2", "אופציה 3", "אופציה 4"],
-                    correctIndex: 0,
-                    category: "שגיאה",
-                    hint: "נסה שוב מאוחר יותר"
-                });
-            }
-        }
-
-        // --- 4. GAME ENGINE ---
-
-        function initGame() {
-            lucide.createIcons();
-            loadLocalAchievements();
-        }
-
-        function loadLocalAchievements() {
-            const saved = localStorage.getItem('triviaRushAchievements');
-            if (saved) {
-                state.unlockedAchievements = JSON.parse(saved);
-            }
-        }
-
-        function checkAchievements() {
-            const newUnlocks = [];
-            
-            if (state.totalCorrect >= 100 && !hasAchievement('correct_100')) newUnlocks.push('correct_100');
-            if (state.stage >= 10 && !hasAchievement('stage_10')) newUnlocks.push('stage_10');
-            if (state.streak >= 10 && !hasAchievement('streak_10')) newUnlocks.push('streak_10');
-            if (state.score >= 10000 && !hasAchievement('rich')) newUnlocks.push('rich');
-            if (state.timeLeft >= 200 && !hasAchievement('time_lord')) newUnlocks.push('time_lord');
-            
-            if (newUnlocks.length > 0) {
-                newUnlocks.forEach(id => {
-                    state.unlockedAchievements.push(id);
-                    showFloatingText(`🏆 הישג חדש!`, 'general', 'gold');
-                });
-                localStorage.setItem('triviaRushAchievements', JSON.stringify(state.unlockedAchievements));
-            }
-        }
-        
-        function unlockAchievement(id) {
-            if (!hasAchievement(id)) {
-                state.unlockedAchievements.push(id);
-                showFloatingText(`🏆 הישג חדש!`, 'general', 'gold');
-                localStorage.setItem('triviaRushAchievements', JSON.stringify(state.unlockedAchievements));
-            }
-        }
-
-        function hasAchievement(id) {
-            return state.unlockedAchievements.includes(id);
-        }
-
-        async function startGame() {
-            const nameInput = document.getElementById('player-name-input');
-            const playerName = nameInput.value.trim();
-            if (!playerName) { alert("יאללה, תן שם ונתחיל!"); nameInput.focus(); return; }
-
-            state.playerName = playerName;
-            switchScreen('loading-screen');
-            resetGameState();
-            await loadNextBatch();
-            switchScreen('game-screen');
-            state.lastFrameTime = performance.now();
-            requestAnimationFrame(gameLoop);
-            renderQuestion();
-            updateHUD();
-        }
-
-        function resetGameState() {
-            state.isPlaying = true;
-            state.timeLeft = GAME_CONFIG.initialTime;
-            state.score = 0;
-            state.stage = 1;
-            state.totalCorrect = 0;
-            state.questionInStageIndex = 0;
-            state.streak = 0;
-            state.questionQueue = [];
-            state.lifelines = { '5050': 1, 'ai': 1, 'freeze': 1 };
-            state.isFrozen = false;
-            state.isShopOpen = false;
-            
-            document.querySelectorAll('.lifeline-btn').forEach(btn => {
-                btn.disabled = false;
-                btn.style.opacity = '1';
-                btn.querySelector('.lifeline-badge').textContent = '1';
-            });
-        }
-
-        async function loadNextBatch() {
-            const loadingTips = [
-                "טיקטוק זה נחמד, אבל פה המוח עובד! 🧠",
-                "טוען שאלות של אלופים... 💪",
-                "רגע, מחדד את התשובות... ✏️",
-                "מי שקורא את זה יקבל מזל בחיים! 🍀",
-                "מערבב נושאים כמו שייק פירות... 🥤"
-            ];
-            document.getElementById('loading-msg').textContent = "מכין את השלב הבא...";
-            document.getElementById('loading-tip').textContent = loadingTips[Math.floor(Math.random() * loadingTips.length)];
-            
-            try {
-                const newQuestions = await fetchQuestionsFromAI(GAME_CONFIG.questionsPerStage, state.stage);
-                state.questionQueue = [...state.questionQueue, ...newQuestions];
-            } catch (e) {
-                console.error("Failed loading batch");
-            }
-        }
-
-        function gameLoop(timestamp) {
-            if (!state.isPlaying) return;
-            if (!state.lastFrameTime) state.lastFrameTime = timestamp;
-            const deltaTime = (timestamp - state.lastFrameTime) / 1000;
-            state.lastFrameTime = timestamp;
-
-            if (!state.isFrozen && !state.isShopOpen) {
-                state.timeLeft -= deltaTime;
-            }
-
-            if (state.timeLeft <= 0) {
-                state.timeLeft = 0;
-                gameOver("נגמר הזמן! 🕒");
-                updateHUD();
-                return;
-            }
-
-            if (state.timeLeft < 10 && state.timeLeft > 0 && !state.isShopOpen && !state.isFrozen) {
-                const prevSec = Math.ceil(state.timeLeft + deltaTime);
-                const currSec = Math.ceil(state.timeLeft);
-                if (prevSec !== currSec) sound.playTick();
-            }
-            updateHUD();
-            requestAnimationFrame(gameLoop);
-        }
-
-        function updateHUD() {
-            document.getElementById('time-display').textContent = state.timeLeft.toFixed(1);
-            document.getElementById('score-display').textContent = state.score.toLocaleString();
-            document.getElementById('stage-display').textContent = state.stage;
-            
-            const currentQ = state.questionInStageIndex + 1;
-            document.getElementById('stage-progress').textContent = `שאלה ${currentQ} מתוך ${GAME_CONFIG.questionsPerStage} בשלב ${state.stage}`;
-
-            const timerBar = document.getElementById('timer-bar');
-            const percent = (state.timeLeft / GAME_CONFIG.initialTime) * 100; 
-            timerBar.style.width = Math.min(Math.max(percent, 0), 100) + '%';
-            
-            if (state.timeLeft < 10) timerBar.classList.add('danger');
-            else timerBar.classList.remove('danger');
-        }
-
-        function renderQuestion() {
-            if (state.questionQueue.length === 0) {
-                state.stage++;
-                state.questionInStageIndex = 0;
-                state.isFrozen = true;
-                
-                if (state.timeLeft < 1 && !hasAchievement('survivor')) {
-                    unlockAchievement('survivor');
-                }
-
-                switchScreen('loading-screen');
-                loadNextBatch().then(() => {
-                    switchScreen('game-screen');
-                    state.isFrozen = false;
-                    renderQuestion();
-                });
-                return;
-            }
-
-            const q = state.questionQueue.shift();
-            state.currentQuestion = q;
-            
-            state.questionStartTime = Date.now();
-
-            const container = document.getElementById('options-container');
-            container.innerHTML = '';
-            
-            document.getElementById('question-text').textContent = q.question;
-            document.getElementById('question-category').textContent = q.category || "כללי";
-
-            q.options.forEach((opt, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.textContent = opt;
-                btn.onclick = () => handleAnswer(idx, btn);
-                container.appendChild(btn);
-            });
-            
-            updateHUD();
-        }
-
-        function handleAnswer(selectedIndex, btnElement) {
-            if (!state.isPlaying || btnElement.classList.contains('disabled')) return;
-
-            const buttons = document.querySelectorAll('.option-btn');
-            buttons.forEach(b => b.classList.add('disabled'));
-            const isCorrect = selectedIndex === state.currentQuestion.correctIndex;
-            const reactionTime = (Date.now() - state.questionStartTime) / 1000;
-
-            if (isCorrect) {
-                btnElement.classList.add('correct');
-                sound.playCorrect();
-                handleCorrectAnswer(reactionTime);
-            } else {
-                btnElement.classList.add('wrong');
-                buttons[state.currentQuestion.correctIndex].classList.add('correct');
-                sound.playWrong();
-                handleWrongAnswer();
-            }
-
-            state.questionInStageIndex++; // Move next
-            checkAchievements();
-
-            setTimeout(() => {
-                if (state.isPlaying) renderQuestion();
-            }, 1500);
-        }
-
-        function handleCorrectAnswer(reactionTime) {
-            state.totalCorrect++;
-            state.streak++;
-            
-            // Checking for Phoenix achievement (recovery from low time)
-            if (state.timeLeft < 5) {
-                state.lowTimeFlag = true;
-            }
-            if (state.lowTimeFlag && state.timeLeft > 30) {
-                unlockAchievement('phoenix');
-                state.lowTimeFlag = false;
-            }
-            
-            let moneyReward = Math.floor(GAME_CONFIG.baseMoney * Math.pow(GAME_CONFIG.moneyMultiplier, (state.stage - 1)));
-            let timeBonus = Math.max(2, GAME_CONFIG.timeBonusBase - (state.stage * 0.5));
-            
-            let isSpeedRun = false;
-            if (reactionTime < 2) {
-                isSpeedRun = true;
-                moneyReward = Math.floor(moneyReward * 1.5);
-                timeBonus += 2;
-                sound.playSpeedBonus();
-                showFloatingText("⚡ SPEED RUN! ⚡", 'general', "#ffeb3b");
-            }
-
-            if (state.streak >= 3) {
-                 moneyReward += (state.streak * 10);
-                 showFloatingText(`${state.streak} ברצף! 🔥`, 'general', "#ff5722");
-            }
-
-            state.score += moneyReward;
-            state.timeLeft += timeBonus;
-            
-            showFloatingText(`+₪${moneyReward}`, 'money', 'var(--success)');
-            showFloatingText(`+${timeBonus.toFixed(1)}s`, 'time', 'var(--secondary)');
-
-            if (state.streak % 5 === 0 || isSpeedRun) {
-                confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 }, colors: ['#7000ff', '#00f0ff'] });
-            }
-        }
-
-        function handleWrongAnswer() {
-            state.streak = 0;
-            const timePenalty = GAME_CONFIG.timePenaltyBase;
-            state.timeLeft -= timePenalty;
-            
-            showFloatingText(`-${timePenalty}s`, 'time', 'var(--danger)');
-            showFloatingText("אופס! 😬", 'general', "#ffcc00");
-        }
-
-        function showFloatingText(text, type, color) {
-            const el = document.createElement('div');
-            el.className = 'float-text';
-            el.textContent = text;
-            el.style.color = color;
-            
-            if (type === 'money') {
-                el.style.left = '20px';
-                el.style.top = '100px'; 
-                el.classList.add('float-up');
-                el.style.fontSize = '1.5rem';
-            } else if (type === 'time') {
-                el.style.right = '20px'; 
-                el.style.top = '100px'; 
-                el.classList.add('float-up');
-                el.style.fontSize = '1.5rem';
-            } else {
-                el.style.left = '50%';
-                el.style.top = '50%';
-                el.classList.add('float-center');
-            }
-
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 2000);
-        }
-
-        // --- 5. LIFELINES, AI & SHOP ---
-
-        function useLifeline(type) {
-            if (!state.isPlaying || state.lifelines[type] <= 0) return;
-
-            const btn = document.querySelector(`#btn-${type}`);
-            state.lifelines[type]--;
-            btn.querySelector('.lifeline-badge').textContent = '0';
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-
-            if (type === '5050') {
-                const correctIdx = state.currentQuestion.correctIndex;
-                const buttons = document.querySelectorAll('.option-btn');
-                const wrongIndices = [];
-                buttons.forEach((_, i) => { if(i !== correctIdx) wrongIndices.push(i); });
-                
-                for (let i = wrongIndices.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [wrongIndices[i], wrongIndices[j]] = [wrongIndices[j], wrongIndices[i]];
-                }
-                buttons[wrongIndices[0]].style.visibility = 'hidden';
-                buttons[wrongIndices[1]].style.visibility = 'hidden';
-
-            } else if (type === 'freeze') {
-                state.isFrozen = true;
-                document.body.style.filter = "grayscale(80%)";
-                showFloatingText("הזמן קפא! ❄️", 'general', "var(--secondary)");
-                setTimeout(() => {
-                    state.isFrozen = false;
-                    document.body.style.filter = "none";
-                }, 5000); 
-
-            } else if (type === 'ai') {
-                const bubble = document.getElementById('ai-bubble');
-                const correctIdx = state.currentQuestion.correctIndex;
-                const correctTxt = state.currentQuestion.options[correctIdx];
-                
-                const confidence = Math.floor(Math.random() * (95 - 60) + 60); 
-                let aiText = "";
-                
-                if (confidence > 80) {
-                     aiText = `🤖 Gemini: "אני ${confidence}% בטוח שזה <b>${correctTxt}</b>."`;
-                } else {
-                    let wrongIdx = (correctIdx + 1) % 4;
-                    let wrongTxt = state.currentQuestion.options[wrongIdx];
-                    aiText = `🤖 Gemini: "מתלבט בין ${wrongTxt} ל-${correctTxt}... אבל הולך על <b>${correctTxt}</b> (${confidence}%)"`;
-                }
-
-                bubble.style.display = 'block';
-                bubble.innerHTML = aiText;
-                setTimeout(() => { bubble.style.display = 'none'; }, 6000);
-            }
-        }
-
-        // --- SHOP LOGIC ---
-        function getShopPrice(type) {
-            const s = state.stage;
-            const base = GAME_CONFIG.baseShopPrices;
-            
-            // Logic: Base Price + (Stage * Multiplier)
-            if (type === 'time_small') return base.time_small + ((s - 1) * 50); 
-            if (type === 'time_big') return base.time_big + ((s - 1) * 100);
-            if (type === 'lifelines') return base.lifelines + ((s - 1) * 200);
-            return 9999;
-        }
-
-        function openShop() {
-            if (!state.isPlaying) return;
-            state.isShopOpen = true; 
-            
-            // Update prices in UI
-            document.getElementById('shop-price-time-small').textContent = `₪${getShopPrice('time_small')}`;
-            document.getElementById('shop-price-time-big').textContent = `₪${getShopPrice('time_big')}`;
-            document.getElementById('shop-price-lifelines').textContent = `₪${getShopPrice('lifelines')}`;
-            
-            document.getElementById('shop-modal').classList.add('active');
-        }
-
-        function closeShop() {
-            document.getElementById('shop-modal').classList.remove('active');
-            state.isShopOpen = false; 
-            state.lastFrameTime = performance.now(); 
-        }
-
-        function buyItem(type) {
-            const price = getShopPrice(type);
-            
-            if (state.score >= price) {
-                state.score -= price;
-                
-                if (type === 'time_small') {
-                    state.timeLeft += 10;
-                    showFloatingText("+10s", 'time', 'var(--success)');
-                } else if (type === 'time_big') {
-                    state.timeLeft += 30;
-                    showFloatingText("+30s", 'time', 'var(--success)');
-                } else if (type === 'lifelines') {
-                    state.lifelines = { '5050': 1, 'ai': 1, 'freeze': 1 };
-                    document.querySelectorAll('.lifeline-btn').forEach(btn => {
-                        btn.disabled = false;
-                        btn.style.opacity = '1';
-                        btn.querySelector('.lifeline-badge').textContent = '1';
-                    });
-                    showFloatingText("עזרות מלאות!", 'general', 'var(--primary)');
-                }
-
-                sound.playCash();
-                unlockAchievement('spender');
-                updateHUD();
-                
-                // Recalculate price for next time immediately just in case (though it only changes on stage up)
-                // Actually price changes per stage, so we don't need to update TEXT here, it updates on openShop.
-                
-                const btn = event.currentTarget;
-                const originalBg = btn.style.background;
-                btn.style.background = "var(--success)";
-                setTimeout(() => btn.style.background = originalBg, 200);
-
-            } else {
-                sound.playWrong();
-                showFloatingText("אין מספיק כסף!", 'money', 'var(--danger)');
-            }
-        }
-
-        // --- 6. LEADERBOARD & MODAL & INSTRUCTIONS ---
-
-        function openLeaderboard() {
-            const modal = document.getElementById('leaderboard-modal');
-            const content = document.getElementById('modal-body-content');
-            modal.classList.add('active');
-            
-            document.getElementById('modal-title').textContent = '🏆 טבלת אלופים';
-            document.getElementById('modal-back-btn').style.display = 'none';
-
-            let highScores = JSON.parse(localStorage.getItem('triviaRushScores')) || [];
-            
-            let html = '';
-            if (highScores.length === 0) {
-                html = '<p style="text-align:center; opacity:0.6;">עדיין אין שיאים...</p>';
-            } else {
-                html += '<div style="font-size:0.8rem; color:gray; margin-bottom:10px; text-align:right;">לחץ על שחקן לפירוט</div>';
-                highScores.forEach((s, i) => {
-                    // Fallback for old saves without stage
-                    const stage = s.stage || '?';
-                    html += `
-                    <div class="leaderboard-item" onclick="showPlayerDetails(${i})">
-                        <div style="flex:1;">
-                            <span style="font-weight:bold; color:var(--secondary);">${i+1}. ${s.name}</span>
-                            <div style="font-size:0.75rem; color:#aaa;">${s.date}</div>
-                        </div>
-                        <div style="text-align:left;">
-                            <div style="color:var(--success); font-weight:bold;">₪${s.score.toLocaleString()}</div>
-                            <div style="font-size:0.8rem;">שלב ${stage}</div>
-                        </div>
-                    </div>`;
-                });
-            }
-
-            content.innerHTML = html;
-        }
-        
-        function showPlayerDetails(index) {
-            let highScores = JSON.parse(localStorage.getItem('triviaRushScores')) || [];
-            const player = highScores[index];
-            if (!player) return;
-
-            document.getElementById('modal-title').textContent = `👤 פרופיל: ${player.name}`;
-            document.getElementById('modal-back-btn').style.display = 'block';
-            
-            const content = document.getElementById('modal-body-content');
-            
-            let achievementsHtml = '';
-            const playerAchievements = player.achievements || []; // List of IDs
-
-            ACHIEVEMENTS_LIST.forEach(ach => {
-                const isUnlocked = playerAchievements.includes(ach.id);
-                const cls = isUnlocked ? 'unlocked' : '';
-                const icon = isUnlocked ? ach.icon : '🔒';
-                const opacity = isUnlocked ? '1' : '0.3';
-                
-                achievementsHtml += `
-                <div class="achievement-item ${cls}">
-                    <div class="achievement-icon" style="opacity:${opacity}">${icon}</div>
-                    <div>
-                        <div style="font-weight:bold; opacity:${opacity}">${ach.title}</div>
-                        <div style="font-size:0.8rem; opacity:0.7;">${ach.desc}</div>
-                    </div>
-                </div>`;
-            });
-            
-            content.innerHTML = `
-                <div style="text-align:center; margin-bottom:20px; padding:10px; background:rgba(255,255,255,0.05); border-radius:10px;">
-                    <div style="font-size:2rem; color:var(--success);">₪${player.score.toLocaleString()}</div>
-                    <div style="display:flex; justify-content:center; gap:20px; margin-top:5px;">
-                        <span>שלב: <b>${player.stage || '?'}</b></span>
-                        <span>הישגים: <b>${playerAchievements.length}</b></span>
-                    </div>
-                </div>
-                <h3>הישגים במשחק זה:</h3>
-                ${achievementsHtml}
-            `;
-        }
-
-        function backToLeaderboard() {
-            openLeaderboard();
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-
-        function openInstructions() {
-            document.getElementById('instructions-modal').classList.add('active');
-        }
-
-        function gameOver(reason) {
-            state.isPlaying = false;
-            sound.playWin(); 
-            
-            document.getElementById('gameover-reason').textContent = reason;
-            document.getElementById('final-name').textContent = state.playerName;
-            document.getElementById('final-score').textContent = `₪${state.score.toLocaleString()}`;
-            document.getElementById('final-stage').textContent = state.stage;
-            document.getElementById('final-correct').textContent = state.totalCorrect;
-            
-            saveHighScore(state.score);
-            switchScreen('gameover-screen');
-        }
-
-        function saveHighScore(score) {
-            let highScores = JSON.parse(localStorage.getItem('triviaRushScores')) || [];
-            
-            // Save richer data object
-            highScores.push({ 
-                name: state.playerName, 
-                date: new Date().toLocaleDateString(), 
-                score: score,
-                stage: state.stage,
-                achievements: [...state.unlockedAchievements] // Copy array
-            });
-            
-            highScores.sort((a, b) => b.score - a.score);
-            highScores = highScores.slice(0, 10); // Expanded top 10
-            localStorage.setItem('triviaRushScores', JSON.stringify(highScores));
-        }
-
-        // --- 7. UTILS ---
-
-        function switchScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
-        function returnToMenu() {
-            switchScreen('menu-screen');
-        }
-
-        // Init
-        window.onload = initGame;
-
-    </script>
+    <!-- Audio Context (Hidden) -->
+    <div id="audio-controller"></div>
+
+    <!-- Achievements / Leaderboard Modal -->
+    <div id="leaderboard-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-back-btn" id="modal-back-btn" onclick="backToLeaderboard()"><i data-lucide="arrow-right"></i></button>
+                <span id="modal-title">🏆 היכל התהילה</span>
+            </div>
+            <div class="modal-body" id="modal-body-content">
+                <!-- Content injected via JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn" style="width: auto; padding: 10px 30px;" onclick="closeModal('leaderboard-modal')">סגור</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shop Modal -->
+    <div id="shop-modal" class="modal-overlay">
+        <div class="modal-content" style="border-color: var(--shop);">
+            <div class="modal-header" style="color: var(--shop);">🛒 חנות המשחק</div>
+            <div class="modal-body">
+                <div style="text-align:center; margin-bottom:15px; color:var(--text-muted);">המשחק נעצר. קנה בחוכמה! (המחירים עולים בכל שלב)</div>
+                <div class="shop-grid">
+                    <button class="shop-item" onclick="buyItem('time_small')">
+                        <div class="shop-item-details">
+                            <div class="shop-item-title">⏰ תוספת זמן קצרה</div>
+                            <div class="shop-item-desc">+10 שניות</div>
+                        </div>
+                        <div class="shop-item-price" id="shop-price-time-small">₪500</div>
+                    </button>
+
+                    <button class="shop-item" onclick="buyItem('time_big')">
+                        <div class="shop-item-details">
+                            <div class="shop-item-title">⏳ תוספת זמן גדולה</div>
+                            <div class="shop-item-desc">+30 שניות</div>
+                        </div>
+                        <div class="shop-item-price" id="shop-price-time-big">₪1,200</div>
+                    </button>
+
+                    <button class="shop-item" onclick="buyItem('lifelines')">
+                        <div class="shop-item-details">
+                            <div class="shop-item-title">❤️ מילוי עזרות</div>
+                            <div class="shop-item-desc">מחזיר את כל העזרות</div>
+                        </div>
+                        <div class="shop-item-price" id="shop-price-lifelines">₪2,000</div>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeShop()">חזור למשחק</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div id="instructions-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">📜 איך משחקים?</div>
+            <div class="modal-body" style="text-align: right; line-height: 1.6;">
+                <div style="margin-bottom: 15px;">
+                    <h3 style="color: var(--secondary); margin-bottom: 5px;">⚡ המטרה</h3>
+                    לענות על כמה שיותר שאלות, לצבור כסף ולשרוד כמה שיותר זמן!
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <h3 style="color: var(--warning); margin-bottom: 5px;">⏳ חוקי בסיס</h3>
+                    <ul style="padding-right: 20px;">
+                        <li>הזמן הוא המשאב הכי חשוב (נגמר = הפסד).</li>
+                        <li>תשובה נכונה מעניקה <b>בונוס זמן וכסף</b>.</li>
+                        <li>תשובה שגויה גוררת <b>קנס זמן</b>.</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <h3 style="color: var(--shop); margin-bottom: 5px;">🛒 החנות</h3>
+                    אפשר להמיר את הכסף שצברתם לזמן נוסף או למילוי עזרות.
+                    <br><small>המחירים עולים ככל שמתקדמים בשלבים!</small>
+                </div>
+
+                <div>
+                    <h3 style="color: var(--success); margin-bottom: 5px;">🆘 גלגלי הצלה</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 5px;">🌗 <b>50:50</b> - מסיר 2 תשובות שגויות.</li>
+                        <li style="margin-bottom: 5px;">🤖 <b>AI</b> - מתייעץ עם הבינה המלאכותית (לא תמיד צודקת!).</li>
+                        <li>❄️ <b>הקפאה</b> - עוצר את הזמן ל-5 שניות.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" style="width: auto; padding: 10px 30px;" onclick="closeModal('instructions-modal')">הבנתי, יאללה!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- מסך תפריט ראשי -->
+    <div id="menu-screen" class="screen active">
+        <div class="game-title">מירוץ הידע</div>
+        <div class="subtitle">הזמן הוא הכסף שלך. אל תבזבז אותו.</div>
+        
+        <input type="text" id="player-name-input" class="name-input" placeholder="הכנס את שמך..." maxlength="15">
+
+        <button class="btn" onclick="startGame()">
+            <i data-lucide="play"></i> התחל משחק
+        </button>
+        <button class="btn btn-outline" onclick="openLeaderboard()">
+            <i data-lucide="trophy"></i> הישגים ושיאים
+        </button>
+        <button class="btn btn-outline" onclick="openInstructions()">
+            <i data-lucide="book-open"></i> הוראות משחק
+        </button>
+        
+        <div style="margin-top: 30px; font-size: 0.8rem; color: #555;">
+            מופעל ע"י Gemini AI
+        </div>
+    </div>
+
+    <!-- מסך טעינה (בין שלבים) -->
+    <div id="loading-screen" class="screen">
+        <div class="loader"></div>
+        <div class="loading-text" id="loading-msg">מכין את המוח...</div>
+        <div class="loading-tip" id="loading-tip">טיפ: שאלות קשות נותנות פחות זמן אבל יותר כסף!</div>
+    </div>
+
+    <!-- מסך משחק -->
+    <div id="game-screen" class="screen">
+        <div class="hud">
+            <div class="stat-box" id="hud-time">
+                <span class="stat-label">זמן</span>
+                <span class="stat-value" id="time-display">120.0</span>
+            </div>
+            <div class="stat-box" id="hud-stage">
+                <span class="stat-label">שלב</span>
+                <span class="stat-value" id="stage-display">1</span>
+            </div>
+            <div class="stat-box" id="hud-money">
+                <span class="stat-label">קופה</span>
+                <span class="stat-value" style="color: var(--success);">₪<span id="score-display">0</span></span>
+            </div>
+        </div>
+        
+        <div class="timer-container">
+            <div class="timer-bar" id="timer-bar"></div>
+        </div>
+        <div class="progress-text" id="stage-progress">שאלה 1 מתוך 30</div>
+
+        <div class="question-card">
+            <div id="question-category" style="position: absolute; top: -10px; right: 20px; background: var(--primary); padding: 2px 10px; border-radius: 10px; font-size: 0.8rem;">כללי</div>
+            <div class="question-text" id="question-text">
+                השאלה תופיע כאן...
+            </div>
+            <div class="options-grid" id="options-container">
+                <!-- כפתורי תשובות -->
+            </div>
+        </div>
+
+        <div class="ai-thinking" id="ai-bubble">Gemini חושב...</div>
+
+        <div class="bottom-controls">
+            <div class="lifelines">
+                <button class="lifeline-btn" id="btn-5050" onclick="useLifeline('5050')" title="50/50">
+                    <span class="lifeline-badge">1</span>
+                    <span style="font-weight: bold;">50:50</span>
+                </button>
+                <button class="lifeline-btn" id="btn-ai" onclick="useLifeline('ai')" title="שאל את Gemini">
+                    <span class="lifeline-badge">1</span>
+                    <i data-lucide="bot"></i>
+                </button>
+                <button class="lifeline-btn" id="btn-freeze" onclick="useLifeline('freeze')" title="הקפאת זמן">
+                    <span class="lifeline-badge">1</span>
+                    <i data-lucide="snowflake"></i>
+                </button>
+            </div>
+            <button class="btn btn-shop" onclick="openShop()" style="width: auto; border-radius: 50%; width: 60px; height: 60px; padding: 0;">
+                <i data-lucide="shopping-cart"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- מסך סיום -->
+    <div id="gameover-screen" class="screen">
+        <h1 style="font-size: 3rem; color: var(--danger); margin: 0;">נגמר הזמן!</h1>
+        <p class="subtitle" id="gameover-reason">השעון הגיע ל-0</p>
+        
+        <div style="background: var(--bg-card); padding: 20px; border-radius: 15px; width: 100%; margin-bottom: 20px;">
+            <div class="stat-row">
+                <span>שחקן:</span>
+                <span style="color: var(--secondary); font-weight: bold;" id="final-name">אורח</span>
+            </div>
+            <div class="stat-row">
+                <span>סכום סופי:</span>
+                <span style="color: var(--success); font-weight: bold;" id="final-score">₪0</span>
+            </div>
+            <div class="stat-row">
+                <span>שלב שהגעת:</span>
+                <span id="final-stage">1</span>
+            </div>
+            <div class="stat-row">
+                <span>שאלות נכונות:</span>
+                <span id="final-correct">0</span>
+            </div>
+        </div>
+
+        <button class="btn" onclick="returnToMenu()">
+            <i data-lucide="home"></i> תפריט ראשי
+        </button>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURATION & STATE ---
+        // API KEY removed for server-side handling
+        
+        const GAME_CONFIG = {
+            initialTime: 60, 
+            baseMoney: 100,
+            moneyMultiplier: 1.2, 
+            timeBonusBase: 7, 
+            timePenaltyBase: 4, 
+            questionsPerStage: 30, // כמות שאלות גדולה ליעילות API
+            randomSubjectsCount: 3,
+            // Base prices now, calculation is dynamic
+            baseShopPrices: {
+                time_small: 100,
+                time_big: 200,
+                lifelines: 400
+            }
+        };
+
+        const SUBJECTS = [
+            "ידע כללי וטריוויה", "עובדות מעניינות (הידעת?)", "מושגים בסיסיים בעולם",
+            "היסטוריה של מדינת ישראל", "גאוגרפיה של ישראל", "תרבות ישראלית וסלנג", 
+            "דמויות ישראליות חשובות", "צה\"ל ומלחמות ישראל", "מוסדות המדינה",
+            "דגלים וערי בירה", "גאוגרפיה עולמית", "אתרים מפורסמים בעולם",
+            "תרבויות ומנהגים", "חגים בעולם", "אוקיינוסים ויבשות",
+            "סרטים וקולנוע (Marvel/Disney)", "סדרות טלוויזיה מפורסמות", "מוזיקה ישראלית ובינלאומית",
+            "זיהוי שירים לפי מילים", "אנימציה ואנימה", "סלבס ורכילות",
+            "משחקי מחשב (Fortnite, Minecraft)", "יוטיוברים וסטרימרים", "טרנדים בטיקטוק",
+            "אמוג'ים ומשמעותם", "סלנג רשת ומימים (Memes)",
+            "בעלי חיים וטבע", "גוף האדם ורפואה", "אסטרונומיה וחלל",
+            "המצאות וטכנולוגיה", "פיזיקה וכימיה בסיסית", "מתמטיקה ולוגיקה",
+            "מאכלים מכל העולם", "מטבח ישראלי", "כדורגל עולמי (מונדיאל, אלופות)",
+            "כדורגל ישראלי", "כדורסל (NBA/יורוליג)", "שיאי ספורט",
+            "חידות 'מה אני?'", "חידות קומבינטוריות קלות", "תרחישי חשיבה ולוגיקה", 
+            "חידות בלשיות (מי גנב את היהלום?)", "סדרות לוגיות לא מספריות",
+            "עובדות מוזרות (נכון/לא נכון)", "מיתוסים ואמונות תפלות", "טרנדים וסלבס - אמת או שקר?",
+            "השלמת פתגמים ומטבעות לשון", "השלמת משפטים משירים מוכרים", "ציטוטים מסרטים וסדרות",
+            "חשבון מהיר וחישוב מנטלי", "אחוזים ובעיות מילוליות", "סדר פעולות חשבון",
+            "גאומטריה וצורות", "סדרות מתמטיות",
+            "מבחני IQ - סדרות צורות", "אנלוגיות מילוליות (יחסים)", "יוצא דופן"
+        ];
+
+        const ACHIEVEMENTS_LIST = [
+            { id: 'correct_100', icon: '🧠', title: 'מוח על', desc: 'ענית על 100 שאלות נכונות' },
+            { id: 'stage_10', icon: '🚀', title: 'טייס חלל', desc: 'הגעת לשלב 10' },
+            { id: 'streak_10', icon: '🔥', title: 'בלתי ניתן לעצירה', desc: 'רצף של 10 תשובות נכונות' },
+            { id: 'survivor', icon: '⏱️', title: 'השורד האחרון', desc: 'ניצחת שלב עם פחות משנייה אחת' },
+            { id: 'rich', icon: '💎', title: 'מיליונר', desc: 'צברת מעל ₪10,000' },
+            { id: 'spender', icon: '💸', title: 'בזבזן', desc: 'קנית פריט בחנות' },
+            { id: 'time_lord', icon: '⏳', title: 'אדון הזמן', desc: 'צברת מעל 200 שניות על השעון' },
+            { id: 'phoenix', icon: '🦅', title: 'עוף החול', desc: 'חזרת למשחק ממתחת ל-5 שניות' }
+        ];
+
+        let state = {
+            isPlaying: false,
+            playerName: "אורח",
+            timeLeft: 120,
+            score: 0,
+            stage: 1, 
+            totalCorrect: 0, 
+            currentStageCorrect: 0,
+            questionInStageIndex: 0, 
+            currentQuestion: null,
+            questionQueue: [],
+            streak: 0,
+            lifelines: { '5050': 1, 'ai': 1, 'freeze': 1 },
+            isFrozen: false,
+            isShopOpen: false,
+            lastFrameTime: 0,
+            questionStartTime: 0,
+            unlockedAchievements: []
+        };
+
+        let audioCtx = null; 
+
+        // --- 2. AUDIO SYSTEM ---
+        class SoundManager {
+            constructor() { this.init(); }
+            init() {
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!audioCtx) audioCtx = new AudioContext();
+            }
+            playTone(freq, type, duration) {
+                if (!audioCtx) this.init();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            }
+            playCorrect() { this.playTone(600, 'sine', 0.1); setTimeout(() => this.playTone(800, 'sine', 0.2), 100); }
+            playWrong() { this.playTone(150, 'sawtooth', 0.3); setTimeout(() => this.playTone(100, 'sawtooth', 0.4), 150); }
+            playTick() { this.playTone(800, 'square', 0.05); }
+            playWin() { [400, 500, 600, 800].forEach((freq, i) => setTimeout(() => this.playTone(freq, 'triangle', 0.2), i * 100)); }
+            playSpeedBonus() { this.playTone(1000, 'sine', 0.1); setTimeout(() => this.playTone(1500, 'sine', 0.1), 100); }
+            playCash() { this.playTone(1200, 'sine', 0.1); setTimeout(() => this.playTone(2000, 'square', 0.2), 100); }
+        }
+        const sound = new SoundManager();
+
+        // --- 3. GEMINI API SERVICE (Via Vercel Function) ---
+        async function fetchQuestionsFromAI(count, currentStage) {
+            // 1. ערבוב רשימת הנושאים המלאה כדי לקבל גיוון מקסימלי
+            const shuffledSubjects = [...SUBJECTS].sort(() => 0.5 - Math.random());
+            
+            // 2. בחירת מספר נושאים כמספר השאלות הנדרשות (למשל 30)
+            // זה מבטיח שכל שאלה תקבל נושא ייחודי מתוך הרשימה שנבחרה
+            const selectedSubjects = shuffledSubjects.slice(0, count);
+            
+            const difficulty = currentStage < 3 ? "קל" : (currentStage < 7 ? "בינוני" : "קשה ומאתגר");
+            
+            // בניית הפרומפט - שולחים את רשימת הנושאים המלאה שנבחרה
+            const prompt = `
+            צור ${count} שאלות טריוויה בעברית.
+            הקפד על גיוון מקסימלי! עבור כל שאלה, בחר נושא אחר מתוך הרשימה הבאה (נושא אחד לכל שאלה):
+            ${selectedSubjects.join(", ")}.
+            
+            רמת קושי: ${difficulty}.
+            סוג השאלות: אמריקאיות עם 4 תשובות (או נכון/לא נכון אם מתאים).
+            
+            החזר JSON בלבד (מערך אובייקטים):
+            [
+              {
+                "question": "שאלה?",
+                "options": ["תשובה1", "תשובה2", "תשובה3", "תשובה4"],
+                "correctIndex": 0,
+                "hint": "רמז קצר",
+                "category": "הנושא שנבחר מהרשימה"
+              }
+            ]
+            `;
+
+            try {
+                // Modified for Vercel Serverless Function Proxy
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt }) 
+                });
+
+                if (!response.ok) throw new Error("Server error");
+
+                const data = await response.json();
+                
+                // ניתוח התשובה (Parsing)
+                if (data.candidates) {
+                      const text = data.candidates[0].content.parts[0].text;
+                      const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                      return JSON.parse(jsonStr);
+                }
+                
+                if (Array.isArray(data)) return data;
+                
+                return data; 
+
+            } catch (error) {
+                console.error("AI Error:", error);
+                // במקרה של שגיאה, מחזיר שאלות דמי כדי שהמשחק לא ייתקע
+                return Array(count).fill({
+                    question: "שגיאה בטעינת השאלות (נסה לרענן את המשחק)",
+                    options: ["אופציה 1", "אופציה 2", "אופציה 3", "אופציה 4"],
+                    correctIndex: 0,
+                    category: "שגיאה",
+                    hint: "תקלה בתקשורת"
+                });
+            }
+        }
+
+        // --- 4. GAME ENGINE ---
+
+        function initGame() {
+            lucide.createIcons();
+            loadLocalAchievements();
+        }
+
+        function loadLocalAchievements() {
+            const saved = localStorage.getItem('triviaRushAchievements');
+            if (saved) {
+                state.unlockedAchievements = JSON.parse(saved);
+            }
+        }
+
+        function checkAchievements() {
+            const newUnlocks = [];
+            
+            if (state.totalCorrect >= 100 && !hasAchievement('correct_100')) newUnlocks.push('correct_100');
+            if (state.stage >= 10 && !hasAchievement('stage_10')) newUnlocks.push('stage_10');
+            if (state.streak >= 10 && !hasAchievement('streak_10')) newUnlocks.push('streak_10');
+            if (state.score >= 10000 && !hasAchievement('rich')) newUnlocks.push('rich');
+            if (state.timeLeft >= 200 && !hasAchievement('time_lord')) newUnlocks.push('time_lord');
+            
+            if (newUnlocks.length > 0) {
+                newUnlocks.forEach(id => {
+                    state.unlockedAchievements.push(id);
+                    showFloatingText(`🏆 הישג חדש!`, 'general', 'gold');
+                });
+                localStorage.setItem('triviaRushAchievements', JSON.stringify(state.unlockedAchievements));
+            }
+        }
+        
+        function unlockAchievement(id) {
+            if (!hasAchievement(id)) {
+                state.unlockedAchievements.push(id);
+                showFloatingText(`🏆 הישג חדש!`, 'general', 'gold');
+                localStorage.setItem('triviaRushAchievements', JSON.stringify(state.unlockedAchievements));
+            }
+        }
+
+        function hasAchievement(id) {
+            return state.unlockedAchievements.includes(id);
+        }
+
+        async function startGame() {
+            const nameInput = document.getElementById('player-name-input');
+            const playerName = nameInput.value.trim();
+            if (!playerName) { alert("יאללה, תן שם ונתחיל!"); nameInput.focus(); return; }
+
+            state.playerName = playerName;
+            switchScreen('loading-screen');
+            resetGameState();
+            await loadNextBatch();
+            switchScreen('game-screen');
+            state.lastFrameTime = performance.now();
+            requestAnimationFrame(gameLoop);
+            renderQuestion();
+            updateHUD();
+        }
+
+        function resetGameState() {
+            state.isPlaying = true;
+            state.timeLeft = GAME_CONFIG.initialTime;
+            state.score = 0;
+            state.stage = 1;
+            state.totalCorrect = 0;
+            state.questionInStageIndex = 0;
+            state.streak = 0;
+            state.questionQueue = [];
+            state.lifelines = { '5050': 1, 'ai': 1, 'freeze': 1 };
+            state.isFrozen = false;
+            state.isShopOpen = false;
+            
+            document.querySelectorAll('.lifeline-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.querySelector('.lifeline-badge').textContent = '1';
+            });
+        }
+
+        async function loadNextBatch() {
+            const loadingTips = [
+                "טיקטוק זה נחמד, אבל פה המוח עובד! 🧠",
+                "טוען שאלות של אלופים... 💪",
+                "רגע, מחדד את התשובות... ✏️",
+                "מי שקורא את זה יקבל מזל בחיים! 🍀",
+                "מערבב נושאים כמו שייק פירות... 🥤"
+            ];
+            document.getElementById('loading-msg').textContent = "מכין את השלב הבא...";
+            document.getElementById('loading-tip').textContent = loadingTips[Math.floor(Math.random() * loadingTips.length)];
+            
+            try {
+                const newQuestions = await fetchQuestionsFromAI(GAME_CONFIG.questionsPerStage, state.stage);
+                state.questionQueue = [...state.questionQueue, ...newQuestions];
+            } catch (e) {
+                console.error("Failed loading batch");
+            }
+        }
+
+        function gameLoop(timestamp) {
+            if (!state.isPlaying) return;
+            if (!state.lastFrameTime) state.lastFrameTime = timestamp;
+            const deltaTime = (timestamp - state.lastFrameTime) / 1000;
+            state.lastFrameTime = timestamp;
+
+            if (!state.isFrozen && !state.isShopOpen) {
+                state.timeLeft -= deltaTime;
+            }
+
+            if (state.timeLeft <= 0) {
+                state.timeLeft = 0;
+                gameOver("נגמר הזמן! 🕒");
+                updateHUD();
+                return;
+            }
+
+            if (state.timeLeft < 10 && state.timeLeft > 0 && !state.isShopOpen && !state.isFrozen) {
+                const prevSec = Math.ceil(state.timeLeft + deltaTime);
+                const currSec = Math.ceil(state.timeLeft);
+                if (prevSec !== currSec) sound.playTick();
+            }
+            updateHUD();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateHUD() {
+            document.getElementById('time-display').textContent = state.timeLeft.toFixed(1);
+            document.getElementById('score-display').textContent = state.score.toLocaleString();
+            document.getElementById('stage-display').textContent = state.stage;
+            
+            const currentQ = state.questionInStageIndex + 1;
+            document.getElementById('stage-progress').textContent = `שאלה ${currentQ} מתוך ${GAME_CONFIG.questionsPerStage} בשלב ${state.stage}`;
+
+            const timerBar = document.getElementById('timer-bar');
+            const percent = (state.timeLeft / GAME_CONFIG.initialTime) * 100; 
+            timerBar.style.width = Math.min(Math.max(percent, 0), 100) + '%';
+            
+            if (state.timeLeft < 10) timerBar.classList.add('danger');
+            else timerBar.classList.remove('danger');
+        }
+
+        function renderQuestion() {
+            if (state.questionQueue.length === 0) {
+                state.stage++;
+                state.questionInStageIndex = 0;
+                state.isFrozen = true;
+                
+                if (state.timeLeft < 1 && !hasAchievement('survivor')) {
+                    unlockAchievement('survivor');
+                }
+
+                switchScreen('loading-screen');
+                loadNextBatch().then(() => {
+                    switchScreen('game-screen');
+                    state.isFrozen = false;
+                    renderQuestion();
+                });
+                return;
+            }
+
+            const q = state.questionQueue.shift();
+            state.currentQuestion = q;
+            
+            state.questionStartTime = Date.now();
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            document.getElementById('question-text').textContent = q.question;
+            document.getElementById('question-category').textContent = q.category || "כללי";
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => handleAnswer(idx, btn);
+                container.appendChild(btn);
+            });
+            
+            updateHUD();
+        }
+
+        function handleAnswer(selectedIndex, btnElement) {
+            if (!state.isPlaying || btnElement.classList.contains('disabled')) return;
+
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.classList.add('disabled'));
+            const isCorrect = selectedIndex === state.currentQuestion.correctIndex;
+            const reactionTime = (Date.now() - state.questionStartTime) / 1000;
+
+            if (isCorrect) {
+                btnElement.classList.add('correct');
+                sound.playCorrect();
+                handleCorrectAnswer(reactionTime);
+            } else {
+                btnElement.classList.add('wrong');
+                buttons[state.currentQuestion.correctIndex].classList.add('correct');
+                sound.playWrong();
+                handleWrongAnswer();
+            }
+
+            state.questionInStageIndex++; // Move next
+            checkAchievements();
+
+            setTimeout(() => {
+                if (state.isPlaying) renderQuestion();
+            }, 1500);
+        }
+
+        function handleCorrectAnswer(reactionTime) {
+            state.totalCorrect++;
+            state.streak++;
+            
+            // Checking for Phoenix achievement (recovery from low time)
+            if (state.timeLeft < 5) {
+                state.lowTimeFlag = true;
+            }
+            if (state.lowTimeFlag && state.timeLeft > 30) {
+                unlockAchievement('phoenix');
+                state.lowTimeFlag = false;
+            }
+            
+            let moneyReward = Math.floor(GAME_CONFIG.baseMoney * Math.pow(GAME_CONFIG.moneyMultiplier, (state.stage - 1)));
+            let timeBonus = Math.max(2, GAME_CONFIG.timeBonusBase - (state.stage * 0.5));
+            
+            let isSpeedRun = false;
+            if (reactionTime < 2) {
+                isSpeedRun = true;
+                moneyReward = Math.floor(moneyReward * 1.5);
+                timeBonus += 2;
+                sound.playSpeedBonus();
+                showFloatingText("⚡ SPEED RUN! ⚡", 'general', "#ffeb3b");
+            }
+
+            if (state.streak >= 3) {
+                 moneyReward += (state.streak * 10);
+                 showFloatingText(`${state.streak} ברצף! 🔥`, 'general', "#ff5722");
+            }
+
+            state.score += moneyReward;
+            state.timeLeft += timeBonus;
+            
+            showFloatingText(`+₪${moneyReward}`, 'money', 'var(--success)');
+            showFloatingText(`+${timeBonus.toFixed(1)}s`, 'time', 'var(--secondary)');
+
+            if (state.streak % 5 === 0 || isSpeedRun) {
+                confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 }, colors: ['#7000ff', '#00f0ff'] });
+            }
+        }
+
+        function handleWrongAnswer() {
+            state.streak = 0;
+            const timePenalty = GAME_CONFIG.timePenaltyBase;
+            state.timeLeft -= timePenalty;
+            
+            showFloatingText(`-${timePenalty}s`, 'time', 'var(--danger)');
+            showFloatingText("אופס! 😬", 'general', "#ffcc00");
+        }
+
+        function showFloatingText(text, type, color) {
+            const el = document.createElement('div');
+            el.className = 'float-text';
+            el.textContent = text;
+            el.style.color = color;
+            
+            if (type === 'money') {
+                el.style.left = '20px';
+                el.style.top = '100px'; 
+                el.classList.add('float-up');
+                el.style.fontSize = '1.5rem';
+            } else if (type === 'time') {
+                el.style.right = '20px'; 
+                el.style.top = '100px'; 
+                el.classList.add('float-up');
+                el.style.fontSize = '1.5rem';
+            } else {
+                el.style.left = '50%';
+                el.style.top = '50%';
+                el.classList.add('float-center');
+            }
+
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 2000);
+        }
+
+        // --- 5. LIFELINES, AI & SHOP ---
+
+        function useLifeline(type) {
+            if (!state.isPlaying || state.lifelines[type] <= 0) return;
+
+            const btn = document.querySelector(`#btn-${type}`);
+            state.lifelines[type]--;
+            btn.querySelector('.lifeline-badge').textContent = '0';
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+
+            if (type === '5050') {
+                const correctIdx = state.currentQuestion.correctIndex;
+                const buttons = document.querySelectorAll('.option-btn');
+                const wrongIndices = [];
+                buttons.forEach((_, i) => { if(i !== correctIdx) wrongIndices.push(i); });
+                
+                for (let i = wrongIndices.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [wrongIndices[i], wrongIndices[j]] = [wrongIndices[j], wrongIndices[i]];
+                }
+                buttons[wrongIndices[0]].style.visibility = 'hidden';
+                buttons[wrongIndices[1]].style.visibility = 'hidden';
+
+            } else if (type === 'freeze') {
+                state.isFrozen = true;
+                document.body.style.filter = "grayscale(80%)";
+                showFloatingText("הזמן קפא! ❄️", 'general', "var(--secondary)");
+                setTimeout(() => {
+                    state.isFrozen = false;
+                    document.body.style.filter = "none";
+                }, 5000); 
+
+            } else if (type === 'ai') {
+                const bubble = document.getElementById('ai-bubble');
+                const correctIdx = state.currentQuestion.correctIndex;
+                const correctTxt = state.currentQuestion.options[correctIdx];
+                
+                const confidence = Math.floor(Math.random() * (95 - 60) + 60); 
+                let aiText = "";
+                
+                if (confidence > 80) {
+                      aiText = `🤖 Gemini: "אני ${confidence}% בטוח שזה <b>${correctTxt}</b>."`;
+                } else {
+                    let wrongIdx = (correctIdx + 1) % 4;
+                    let wrongTxt = state.currentQuestion.options[wrongIdx];
+                    aiText = `🤖 Gemini: "מתלבט בין ${wrongTxt} ל-${correctTxt}... אבל הולך על <b>${correctTxt}</b> (${confidence}%)"`;
+                }
+
+                bubble.style.display = 'block';
+                bubble.innerHTML = aiText;
+                setTimeout(() => { bubble.style.display = 'none'; }, 6000);
+            }
+        }
+
+        // --- SHOP LOGIC ---
+        function getShopPrice(type) {
+            const s = state.stage;
+            const base = GAME_CONFIG.baseShopPrices;
+            
+            // Logic: Base Price + (Stage * Multiplier)
+            if (type === 'time_small') return base.time_small + ((s - 1) * 50); 
+            if (type === 'time_big') return base.time_big + ((s - 1) * 100);
+            if (type === 'lifelines') return base.lifelines + ((s - 1) * 200);
+            return 9999;
+        }
+
+        function openShop() {
+            if (!state.isPlaying) return;
+            state.isShopOpen = true; 
+            
+            // Update prices in UI
+            document.getElementById('shop-price-time-small').textContent = `₪${getShopPrice('time_small')}`;
+            document.getElementById('shop-price-time-big').textContent = `₪${getShopPrice('time_big')}`;
+            document.getElementById('shop-price-lifelines').textContent = `₪${getShopPrice('lifelines')}`;
+            
+            document.getElementById('shop-modal').classList.add('active');
+        }
+
+        function closeShop() {
+            document.getElementById('shop-modal').classList.remove('active');
+            state.isShopOpen = false; 
+            state.lastFrameTime = performance.now(); 
+        }
+
+        function buyItem(type) {
+            const price = getShopPrice(type);
+            
+            if (state.score >= price) {
+                state.score -= price;
+                
+                if (type === 'time_small') {
+                    state.timeLeft += 10;
+                    showFloatingText("+10s", 'time', 'var(--success)');
+                } else if (type === 'time_big') {
+                    state.timeLeft += 30;
+                    showFloatingText("+30s", 'time', 'var(--success)');
+                } else if (type === 'lifelines') {
+                    state.lifelines = { '5050': 1, 'ai': 1, 'freeze': 1 };
+                    document.querySelectorAll('.lifeline-btn').forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.querySelector('.lifeline-badge').textContent = '1';
+                    });
+                    showFloatingText("עזרות מלאות!", 'general', 'var(--primary)');
+                }
+
+                sound.playCash();
+                unlockAchievement('spender');
+                updateHUD();
+                
+                // Recalculate price for next time immediately just in case (though it only changes on stage up)
+                // Actually price changes per stage, so we don't need to update TEXT here, it updates on openShop.
+                
+                const btn = event.currentTarget;
+                const originalBg = btn.style.background;
+                btn.style.background = "var(--success)";
+                setTimeout(() => btn.style.background = originalBg, 200);
+
+            } else {
+                sound.playWrong();
+                showFloatingText("אין מספיק כסף!", 'money', 'var(--danger)');
+            }
+        }
+
+        // --- 6. LEADERBOARD & MODAL & INSTRUCTIONS ---
+
+        function openLeaderboard() {
+            const modal = document.getElementById('leaderboard-modal');
+            const content = document.getElementById('modal-body-content');
+            modal.classList.add('active');
+            
+            document.getElementById('modal-title').textContent = '🏆 טבלת אלופים';
+            document.getElementById('modal-back-btn').style.display = 'none';
+
+            let highScores = JSON.parse(localStorage.getItem('triviaRushScores')) || [];
+            
+            let html = '';
+            if (highScores.length === 0) {
+                html = '<p style="text-align:center; opacity:0.6;">עדיין אין שיאים...</p>';
+            } else {
+                html += '<div style="font-size:0.8rem; color:gray; margin-bottom:10px; text-align:right;">לחץ על שחקן לפירוט</div>';
+                highScores.forEach((s, i) => {
+                    // Fallback for old saves without stage
+                    const stage = s.stage || '?';
+                    html += `
+                    <div class="leaderboard-item" onclick="showPlayerDetails(${i})">
+                        <div style="flex:1;">
+                            <span style="font-weight:bold; color:var(--secondary);">${i+1}. ${s.name}</span>
+                            <div style="font-size:0.75rem; color:#aaa;">${s.date}</div>
+                        </div>
+                        <div style="text-align:left;">
+                            <div style="color:var(--success); font-weight:bold;">₪${s.score.toLocaleString()}</div>
+                            <div style="font-size:0.8rem;">שלב ${stage}</div>
+                        </div>
+                    </div>`;
+                });
+            }
+
+            content.innerHTML = html;
+        }
+        
+        function showPlayerDetails(index) {
+            let highScores = JSON.parse(localStorage.getItem('triviaRushScores')) || [];
+            const player = highScores[index];
+            if (!player) return;
+
+            document.getElementById('modal-title').textContent = `👤 פרופיל: ${player.name}`;
+            document.getElementById('modal-back-btn').style.display = 'block';
+            
+            const content = document.getElementById('modal-body-content');
+            
+            let achievementsHtml = '';
+            const playerAchievements = player.achievements || []; // List of IDs
+
+            ACHIEVEMENTS_LIST.forEach(ach => {
+                const isUnlocked = playerAchievements.includes(ach.id);
+                const cls = isUnlocked ? 'unlocked' : '';
+                const icon = isUnlocked ? ach.icon : '🔒';
+                const opacity = isUnlocked ? '1' : '0.3';
+                
+                achievementsHtml += `
+                <div class="achievement-item ${cls}">
+                    <div class="achievement-icon" style="opacity:${opacity}">${icon}</div>
+                    <div>
+                        <div style="font-weight:bold; opacity:${opacity}">${ach.title}</div>
+                        <div style="font-size:0.8rem; opacity:0.7;">${ach.desc}</div>
+                    </div>
+                </div>`;
+            });
+            
+            content.innerHTML = `
+                <div style="text-align:center; margin-bottom:20px; padding:10px; background:rgba(255,255,255,0.05); border-radius:10px;">
+                    <div style="font-size:2rem; color:var(--success);">₪${player.score.toLocaleString()}</div>
+                    <div style="display:flex; justify-content:center; gap:20px; margin-top:5px;">
+                        <span>שלב: <b>${player.stage || '?'}</b></span>
+                        <span>הישגים: <b>${playerAchievements.length}</b></span>
+                    </div>
+                </div>
+                <h3>הישגים במשחק זה:</h3>
+                ${achievementsHtml}
+            `;
+        }
+
+        function backToLeaderboard() {
+            openLeaderboard();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function openInstructions() {
+            document.getElementById('instructions-modal').classList.add('active');
+        }
+
+        function gameOver(reason) {
+            state.isPlaying = false;
+            sound.playWin(); 
+            
+            document.getElementById('gameover-reason').textContent = reason;
+            document.getElementById('final-name').textContent = state.playerName;
+            document.getElementById('final-score').textContent = `₪${state.score.toLocaleString()}`;
+            document.getElementById('final-stage').textContent = state.stage;
+            document.getElementById('final-correct').textContent = state.totalCorrect;
+            
+            saveHighScore(state.score);
+            switchScreen('gameover-screen');
+        }
+
+        function saveHighScore(score) {
+            let highScores = JSON.parse(localStorage.getItem('triviaRushScores')) || [];
+            
+            // Save richer data object
+            highScores.push({ 
+                name: state.playerName, 
+                date: new Date().toLocaleDateString(), 
+                score: score,
+                stage: state.stage,
+                achievements: [...state.unlockedAchievements] // Copy array
+            });
+            
+            highScores.sort((a, b) => b.score - a.score);
+            highScores = highScores.slice(0, 10); // Expanded top 10
+            localStorage.setItem('triviaRushScores', JSON.stringify(highScores));
+        }
+
+        // --- 7. UTILS ---
+
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function returnToMenu() {
+            switchScreen('menu-screen');
+        }
+
+        // Init
+        window.onload = initGame;
+
+    </script>
 </body>
 </html>
