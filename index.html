@@ -1284,9 +1284,9 @@
             const base = GAME_CONFIG.baseShopPrices;
             
             // Logic: Base Price + (Stage * Multiplier)
-            if (type === 'time_small') return base.time_small + ((s - 1) * 25); 
-            if (type === 'time_big') return base.time_big + ((s - 1) * 50);
-            if (type === 'lifelines') return base.lifelines + ((s - 1) * 100);
+            if (type === 'time_small') return base.time_small + ((s - 1) * 50); 
+            if (type === 'time_big') return base.time_big + ((s - 1) * 100);
+            if (type === 'lifelines') return base.lifelines + ((s - 1) * 200);
             return 9999;
         }
 
@@ -1487,6 +1487,7 @@
     </script>
 </body>
 </html>
+
 
 
 
