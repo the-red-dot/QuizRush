@@ -839,9 +839,6 @@
             unlockedAchievements: []
         };
 
-        // cache leaderboard data from /api/leaderboard
-        let leaderboardScores = [];
-
         let audioCtx = null; 
 
         // --- 2. AUDIO SYSTEM ---
@@ -889,13 +886,13 @@
             
             החזר JSON בלבד (מערך אובייקטים):
             [
-            {
+              {
                 "question": "שאלה?",
                 "options": ["תשובה1", "תשובה2", "תשובה3", "תשובה4"],
                 "correctIndex": 0,
                 "hint": "רמז קצר",
                 "category": "שם הנושא הרלוונטי"
-            }
+              }
             ]
             `;
 
@@ -911,17 +908,22 @@
 
                 const data = await response.json();
                 
-                // If the server returns raw Gemini response:
+                // Assuming server returns the cleaned JSON array directly or structure we parse
+                // If the server returns standard gemini response, we parse. 
+                // Let's assume server returns { candidates: [...] } or just the array if we clean it there.
+                // For safety, let's keep parsing logic here similar to before if server forwards raw gemini response.
+                
+                // If your server cleans it, great. If not, we parse:
                 if (data.candidates) {
-                    const text = data.candidates[0].content.parts[0].text;
-                    const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                    return JSON.parse(jsonStr);
+                     const text = data.candidates[0].content.parts[0].text;
+                     const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                     return JSON.parse(jsonStr);
                 }
                 
                 // If server returned cleaned array directly
                 if (Array.isArray(data)) return data;
                 
-                // Fallback attempt
+                // Fallback attempt to parse text if needed
                 return data; 
 
             } catch (error) {
@@ -943,9 +945,11 @@
             loadLocalAchievements();
         }
 
-        // No more localStorage – just reset in-memory achievements.
         function loadLocalAchievements() {
-            state.unlockedAchievements = [];
+            const saved = localStorage.getItem('triviaRushAchievements');
+            if (saved) {
+                state.unlockedAchievements = JSON.parse(saved);
+            }
         }
 
         function checkAchievements() {
@@ -962,7 +966,7 @@
                     state.unlockedAchievements.push(id);
                     showFloatingText(`🏆 הישג חדש!`, 'general', 'gold');
                 });
-                // persistence moved to Supabase via /api/leaderboard on game over
+                localStorage.setItem('triviaRushAchievements', JSON.stringify(state.unlockedAchievements));
             }
         }
         
@@ -970,7 +974,7 @@
             if (!hasAchievement(id)) {
                 state.unlockedAchievements.push(id);
                 showFloatingText(`🏆 הישג חדש!`, 'general', 'gold');
-                // persistence moved to Supabase via /api/leaderboard on game over
+                localStorage.setItem('triviaRushAchievements', JSON.stringify(state.unlockedAchievements));
             }
         }
 
@@ -1169,8 +1173,8 @@
             }
 
             if (state.streak >= 3) {
-                moneyReward += (state.streak * 10);
-                showFloatingText(`${state.streak} ברצף! 🔥`, 'general', "#ff5722");
+                 moneyReward += (state.streak * 10);
+                 showFloatingText(`${state.streak} ברצף! 🔥`, 'general', "#ff5722");
             }
 
             state.score += moneyReward;
@@ -1261,7 +1265,7 @@
                 let aiText = "";
                 
                 if (confidence > 80) {
-                    aiText = `🤖 Gemini: "אני ${confidence}% בטוח שזה <b>${correctTxt}</b>."`;
+                     aiText = `🤖 Gemini: "אני ${confidence}% בטוח שזה <b>${correctTxt}</b>."`;
                 } else {
                     let wrongIdx = (correctIdx + 1) % 4;
                     let wrongTxt = state.currentQuestion.options[wrongIdx];
@@ -1330,6 +1334,9 @@
                 unlockAchievement('spender');
                 updateHUD();
                 
+                // Recalculate price for next time immediately just in case (though it only changes on stage up)
+                // Actually price changes per stage, so we don't need to update TEXT here, it updates on openShop.
+                
                 const btn = event.currentTarget;
                 const originalBg = btn.style.background;
                 btn.style.background = "var(--success)";
@@ -1343,7 +1350,7 @@
 
         // --- 6. LEADERBOARD & MODAL & INSTRUCTIONS ---
 
-        async function openLeaderboard() {
+        function openLeaderboard() {
             const modal = document.getElementById('leaderboard-modal');
             const content = document.getElementById('modal-body-content');
             modal.classList.add('active');
@@ -1351,57 +1358,45 @@
             document.getElementById('modal-title').textContent = '🏆 טבלת אלופים';
             document.getElementById('modal-back-btn').style.display = 'none';
 
-            // Show loading state
-            content.innerHTML = '<p style="text-align:center; opacity:0.6;">טוען טבלה...</p>';
-
-            try {
-                const res = await fetch('/api/leaderboard');
-                if (!res.ok) throw new Error('Failed to load leaderboard');
-                const data = await res.json();
-                leaderboardScores = data.scores || [];
-
-                let html = '';
-                if (!leaderboardScores.length) {
-                    html = '<p style="text-align:center; opacity:0.6;">עדיין אין שיאים...</p>';
-                } else {
-                    html += '<div style="font-size:0.8rem; color:gray; margin-bottom:10px; text-align:right;">לחץ על שחקן לפירוט</div>';
-                    leaderboardScores.forEach((s, i) => {
-                        const stage = s.stage || '?';
-                        const dateStr = s.created_at
-                            ? new Date(s.created_at).toLocaleDateString('he-IL')
-                            : '';
-                        html += `
-                        <div class="leaderboard-item" onclick="showPlayerDetails(${i})">
-                            <div style="flex:1;">
-                                <span style="font-weight:bold; color:var(--secondary);">${i+1}. ${s.player_name}</span>
-                                <div style="font-size:0.75rem; color:#aaa;">${dateStr}</div>
-                            </div>
-                            <div style="text-align:left;">
-                                <div style="color:var(--success); font-weight:bold;">₪${Number(s.score || 0).toLocaleString()}</div>
-                                <div style="font-size:0.8rem;">שלב ${stage}</div>
-                            </div>
-                        </div>`;
-                    });
-                }
-
-                content.innerHTML = html;
-            } catch (err) {
-                console.error('Error loading leaderboard:', err);
-                content.innerHTML = '<p style="text-align:center; opacity:0.6;">שגיאה בטעינת הטבלה...</p>';
+            let highScores = JSON.parse(localStorage.getItem('triviaRushScores')) || [];
+            
+            let html = '';
+            if (highScores.length === 0) {
+                html = '<p style="text-align:center; opacity:0.6;">עדיין אין שיאים...</p>';
+            } else {
+                html += '<div style="font-size:0.8rem; color:gray; margin-bottom:10px; text-align:right;">לחץ על שחקן לפירוט</div>';
+                highScores.forEach((s, i) => {
+                    // Fallback for old saves without stage
+                    const stage = s.stage || '?';
+                    html += `
+                    <div class="leaderboard-item" onclick="showPlayerDetails(${i})">
+                        <div style="flex:1;">
+                            <span style="font-weight:bold; color:var(--secondary);">${i+1}. ${s.name}</span>
+                            <div style="font-size:0.75rem; color:#aaa;">${s.date}</div>
+                        </div>
+                        <div style="text-align:left;">
+                            <div style="color:var(--success); font-weight:bold;">₪${s.score.toLocaleString()}</div>
+                            <div style="font-size:0.8rem;">שלב ${stage}</div>
+                        </div>
+                    </div>`;
+                });
             }
+
+            content.innerHTML = html;
         }
         
         function showPlayerDetails(index) {
-            const player = leaderboardScores[index];
+            let highScores = JSON.parse(localStorage.getItem('triviaRushScores')) || [];
+            const player = highScores[index];
             if (!player) return;
 
-            document.getElementById('modal-title').textContent = `👤 פרופיל: ${player.player_name}`;
+            document.getElementById('modal-title').textContent = `👤 פרופיל: ${player.name}`;
             document.getElementById('modal-back-btn').style.display = 'block';
             
             const content = document.getElementById('modal-body-content');
             
             let achievementsHtml = '';
-            const playerAchievements = player.achievements || []; // array of IDs from Supabase
+            const playerAchievements = player.achievements || []; // List of IDs
 
             ACHIEVEMENTS_LIST.forEach(ach => {
                 const isUnlocked = playerAchievements.includes(ach.id);
@@ -1421,7 +1416,7 @@
             
             content.innerHTML = `
                 <div style="text-align:center; margin-bottom:20px; padding:10px; background:rgba(255,255,255,0.05); border-radius:10px;">
-                    <div style="font-size:2rem; color:var(--success);">₪${Number(player.score || 0).toLocaleString()}</div>
+                    <div style="font-size:2rem; color:var(--success);">₪${player.score.toLocaleString()}</div>
                     <div style="display:flex; justify-content:center; gap:20px; margin-top:5px;">
                         <span>שלב: <b>${player.stage || '?'}</b></span>
                         <span>הישגים: <b>${playerAchievements.length}</b></span>
@@ -1454,34 +1449,25 @@
             document.getElementById('final-stage').textContent = state.stage;
             document.getElementById('final-correct').textContent = state.totalCorrect;
             
-            // Save to Supabase via API (no localStorage)
             saveHighScore(state.score);
             switchScreen('gameover-screen');
         }
 
-        // Save high score to Supabase via /api/leaderboard
-        async function saveHighScore(score) {
-            try {
-                const body = {
-                    playerName: state.playerName,
-                    score,
-                    stage: state.stage,
-                    totalCorrect: state.totalCorrect,
-                    achievements: [...state.unlockedAchievements]
-                };
-
-                const res = await fetch('/api/leaderboard', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-
-                if (!res.ok) {
-                    console.error('Failed to save score', await res.text());
-                }
-            } catch (err) {
-                console.error('Error saving score:', err);
-            }
+        function saveHighScore(score) {
+            let highScores = JSON.parse(localStorage.getItem('triviaRushScores')) || [];
+            
+            // Save richer data object
+            highScores.push({ 
+                name: state.playerName, 
+                date: new Date().toLocaleDateString(), 
+                score: score,
+                stage: state.stage,
+                achievements: [...state.unlockedAchievements] // Copy array
+            });
+            
+            highScores.sort((a, b) => b.score - a.score);
+            highScores = highScores.slice(0, 10); // Expanded top 10
+            localStorage.setItem('triviaRushScores', JSON.stringify(highScores));
         }
 
         // --- 7. UTILS ---
@@ -1499,7 +1485,6 @@
         window.onload = initGame;
 
     </script>
-
 </body>
 </html>
 
