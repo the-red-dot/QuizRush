@@ -873,16 +873,26 @@
 
         // --- 3. GEMINI API SERVICE (Via Vercel Function) ---
         async function fetchQuestionsFromAI(count, currentStage) {
+            // 1. ערבוב רשימת הנושאים המלאה
             const shuffledSubjects = [...SUBJECTS].sort(() => 0.5 - Math.random());
-            const selectedSubjects = shuffledSubjects.slice(0, GAME_CONFIG.randomSubjectsCount);
+            
+            // 2. בחירת מספר נושאים כמספר השאלות הנדרשות (למשל 30)
+            // זה מבטיח שכל שאלה תקבל נושא ייחודי מתוך הרשימה שנבחרה
+            const selectedSubjects = shuffledSubjects.slice(0, count);
+            
+            // במקרה הקצה שביקשנו יותר שאלות מאשר יש נושאים ברשימה (לא סביר כרגע כי יש 55 נושאים ו-30 שאלות),
+            // ה-AI פשוט יאלתר בשאר, אבל הרוב המוחלט יהיה מגוון.
             
             const difficulty = currentStage < 3 ? "קל" : (currentStage < 7 ? "בינוני" : "קשה ומאתגר");
             
+            // בניית הפרומפט - שולחים את רשימת הנושאים המלאה שנבחרה
             const prompt = `
-            צור ${count} שאלות טריוויה בעברית (לרוב אמריקאיות עם 4 תשובות).
-            עבור שאלות "נכון/לא נכון", ספק 2-4 אפשרויות.
-            ערבב שאלות מהנושאים הבאים: ${selectedSubjects.join(", ")}.
+            צור ${count} שאלות טריוויה בעברית.
+            הקפד על גיוון מקסימלי! עבור כל שאלה, בחר נושא אחר מתוך הרשימה הבאה (נושא אחד לכל שאלה):
+            ${selectedSubjects.join(", ")}.
+            
             רמת קושי: ${difficulty}.
+            סוג השאלות: אמריקאיות עם 4 תשובות (או נכון/לא נכון אם מתאים).
             
             החזר JSON בלבד (מערך אובייקטים):
             [
@@ -891,10 +901,46 @@
                 "options": ["תשובה1", "תשובה2", "תשובה3", "תשובה4"],
                 "correctIndex": 0,
                 "hint": "רמז קצר",
-                "category": "שם הנושא הרלוונטי"
+                "category": "הנושא שנבחר מהרשימה"
               }
             ]
             `;
+
+            try {
+                // Modified for Vercel Serverless Function Proxy
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt }) 
+                });
+
+                if (!response.ok) throw new Error("Server error");
+
+                const data = await response.json();
+                
+                // ניתוח התשובה (Parsing)
+                if (data.candidates) {
+                      const text = data.candidates[0].content.parts[0].text;
+                      const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                      return JSON.parse(jsonStr);
+                }
+                
+                if (Array.isArray(data)) return data;
+                
+                return data; 
+
+            } catch (error) {
+                console.error("AI Error:", error);
+                // במקרה של שגיאה, מחזיר שאלות דמי כדי שהמשחק לא ייתקע
+                return Array(count).fill({
+                    question: "שגיאה בטעינת השאלות (נסה לרענן את המשחק)",
+                    options: ["אופציה 1", "אופציה 2", "אופציה 3", "אופציה 4"],
+                    correctIndex: 0,
+                    category: "שגיאה",
+                    hint: "תקלה בתקשורת"
+                });
+            }
+        }
 
             try {
                 // Modified for Vercel Serverless Function Proxy
@@ -1487,6 +1533,7 @@
     </script>
 </body>
 </html>
+
 
 
 
