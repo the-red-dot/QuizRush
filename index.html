@@ -729,16 +729,16 @@
         const GAME_CONFIG = {
             initialTime: 120, 
             baseMoney: 100,
-            moneyMultiplier: 1.2, 
+            moneyMultiplier: 1.3, 
             timeBonusBase: 7, 
             timePenaltyBase: 3, 
             questionsPerStage: 15, 
             randomSubjectsCount: 3,
             // Base prices now, calculation is dynamic
             baseShopPrices: {
-                time_small: 200,
-                time_big: 500,
-                lifelines: 800
+                time_small: 100,
+                time_big: 250,
+                lifelines: 400
             }
         };
 
@@ -1241,9 +1241,9 @@
             const base = GAME_CONFIG.baseShopPrices;
             
             // Logic: Base Price + (Stage * Multiplier)
-            if (type === 'time_small') return base.time_small + ((s - 1) * 50); 
-            if (type === 'time_big') return base.time_big + ((s - 1) * 100);
-            if (type === 'lifelines') return base.lifelines + ((s - 1) * 200);
+            if (type === 'time_small') return base.time_small + ((s - 1) * 25); 
+            if (type === 'time_big') return base.time_big + ((s - 1) * 50);
+            if (type === 'lifelines') return base.lifelines + ((s - 1) * 100);
             return 9999;
         }
 
@@ -1440,3 +1440,4 @@
     </script>
 </body>
 </html>
+
