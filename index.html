@@ -969,20 +969,28 @@
             // בדיקה אם יש נושאים מותאמים אישית
             if (state.customTopics.length > 0) {
                 selectedSubjects = state.customTopics;
+                // שיפור הפרומפט: הנחיה מפורשת לערבוב הנושאים
                 promptContext = `
-                המשתמש ביקש התמקות ספציפית בנושאים: ${selectedSubjects.join(", ")}.
-                אנא חקור את הנושאים הללו לעומק!
-                צור שאלות מגוונות ומעניינות שבודקות ידע נרחב, פרטים ספציפיים, הקשרים והבנה עמוקה של נושאים אלו.
-                וודא שהשאלות מכסות היבטים שונים של הנושאים שנבחרו.
+                המשתמש ביקש שאלות בנושאים הבאים: ${selectedSubjects.join(", ")}.
+                עליך ליצור ${count} שאלות.
+                הנחיה קריטית: עליך לערבב את השאלות בין כל הנושאים שבחר המשתמש!
+                אל תתמקד רק בנושא אחד. חלק את השאלות באופן שווה (פחות או יותר) בין הנושאים: ${selectedSubjects.join(", ")}.
+                ודא שסדר השאלות מעורבב (למשל: שאלה על נושא א', שאלה על נושא ב', שאלה על נושא א' וכו').
                 `;
             } else {
                 // מצב רגיל - בחירה אקראית מתוך הרשימה הכללית
                 const shuffledSubjects = [...SUBJECTS].sort(() => 0.5 - Math.random());
-                selectedSubjects = shuffledSubjects.slice(0, count);
+                // אם בחרנו כמות גדולה של שאלות (למשל 50), נרצה לוודא שיש מספיק נושאים לבחירה
+                // אז נשלח רשימה גדולה יותר או נבקש מה-AI לגוון
+                selectedSubjects = shuffledSubjects.slice(0, count); 
+                
+                // במקרה שcount גדול ממספר הנושאים, פשוט נשלח את כל הנושאים וה-AI יבחר
+                if (count > shuffledSubjects.length) selectedSubjects = shuffledSubjects;
+
                 promptContext = `
                 עבור כל שאלה, בחר נושא אחר מתוך הרשימה הבאה (נושא אחד לכל שאלה):
                 ${selectedSubjects.join(", ")}.
-                הקפד על גיוון מקסימלי!
+                הקפד על גיוון מקסימלי! אל תשאל יותר משאלה אחת או שתיים על אותו נושא ספציפי.
                 `;
             }
             
@@ -1003,7 +1011,7 @@
                 "options": ["תשובה1", "תשובה2", "תשובה3", "תשובה4"],
                 "correctIndex": 0,
                 "hint": "רמז קצר",
-                "category": "הנושא הרלוונטי"
+                "category": "הנושא הרלוונטי (אחד מהנושאים שנבחרו)"
               }
             ]
             `;
@@ -1379,7 +1387,7 @@
             setTimeout(() => el.remove(), 2000);
         }
 
-        // --- 6. LIFELINES, AI & SHOP ---
+        // --- 5. LIFELINES, AI & SHOP ---
 
         function useLifeline(type) {
             if (!state.isPlaying || state.lifelines[type] <= 0) return;
@@ -1504,7 +1512,7 @@
             }
         }
 
-        // --- 7. LEADERBOARD & MODAL & INSTRUCTIONS ---
+        // --- 6. LEADERBOARD & MODAL & INSTRUCTIONS ---
 
         function openLeaderboard() {
             const modal = document.getElementById('leaderboard-modal');
