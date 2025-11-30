@@ -158,7 +158,7 @@
         /* סגנונות נושאים מותאמים אישית */
         .custom-topics-container {
             width: 80%;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .input-group {
@@ -196,6 +196,76 @@
         
         .topic-remove:hover {
             color: #ff5577;
+        }
+
+        /* מתג גוגל */
+        .google-toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 30px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #4285F4; } /* Google Blue */
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        /* רשימת מקורות במסך טעינה */
+        #sources-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .source-item {
+            background: rgba(66, 133, 244, 0.2);
+            border-left: 3px solid #4285F4;
+            padding: 8px;
+            font-size: 0.8rem;
+            text-align: right;
+            border-radius: 4px;
+            animation: slideIn 0.3s ease-out;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* מסך פתיחה */
@@ -701,6 +771,15 @@
         <div class="subtitle">הזמן הוא הכסף שלך. אל תבזבז אותו.</div>
         
         <input type="text" id="player-name-input" class="name-input" placeholder="הכנס את שמך..." maxlength="15">
+        
+        <!-- Google Toggle -->
+        <div class="google-toggle-container">
+            <span style="color: var(--text-muted); font-size: 0.9rem;">חיפוש בגוגל</span>
+            <label class="switch">
+                <input type="checkbox" id="google-search-toggle" onchange="toggleGoogleSearch()">
+                <span class="slider"></span>
+            </label>
+        </div>
 
         <!-- אזור נושאים מותאמים אישית -->
         <div class="custom-topics-container">
@@ -734,6 +813,7 @@
     <div id="loading-screen" class="screen">
         <div class="loader"></div>
         <div class="loading-text" id="loading-msg">מכין את המוח...</div>
+        <div id="sources-list"></div> <!-- מקום למקורות חיפוש -->
         <div class="loading-tip" id="loading-tip">טיפ: שאלות קשות נותנות פחות זמן אבל יותר כסף!</div>
     </div>
 
@@ -896,7 +976,8 @@
             lastFrameTime: 0,
             questionStartTime: 0,
             unlockedAchievements: [],
-            customTopics: [] // רשימת נושאים מותאמים אישית
+            customTopics: [],
+            useGoogle: false // Toggle state for Google Search
         };
 
         let audioCtx = null; 
@@ -931,7 +1012,7 @@
         }
         const sound = new SoundManager();
 
-        // --- 3. CUSTOM TOPICS LOGIC ---
+        // --- 3. CUSTOM TOPICS & GOOGLE TOGGLE LOGIC ---
         function addCustomTopic() {
             const input = document.getElementById('custom-topic-input');
             const topic = input.value.trim();
@@ -961,6 +1042,35 @@
             });
         }
 
+        function toggleGoogleSearch() {
+            const toggle = document.getElementById('google-search-toggle');
+            state.useGoogle = toggle.checked;
+            // Visual feedback (optional, handled by checkbox CSS)
+        }
+
+        function renderSources(sources) {
+            const list = document.getElementById('sources-list');
+            list.innerHTML = '';
+            if (!sources || sources.length === 0) return;
+
+            const title = document.createElement('div');
+            title.style.color = 'var(--secondary)';
+            title.style.fontSize = '0.9rem';
+            title.style.marginBottom = '5px';
+            title.textContent = 'מקורות שנמצאו:';
+            list.appendChild(title);
+
+            sources.forEach(src => {
+                const item = document.createElement('div');
+                item.className = 'source-item';
+                // Sometimes Gemini returns simple objects or complex ones, adjust as needed
+                const text = src.title || src.content?.title || "מקור מידע"; 
+                const uri = src.uri || src.web?.uri || "#";
+                item.innerHTML = `<a href="${uri}" target="_blank" style="color:inherit; text-decoration:none;">🔗 ${text}</a>`;
+                list.appendChild(item);
+            });
+        }
+
         // --- 4. GEMINI API SERVICE (Via Vercel Function) ---
         async function fetchQuestionsFromAI(count, currentStage) {
             let selectedSubjects;
@@ -969,31 +1079,40 @@
             // בדיקה אם יש נושאים מותאמים אישית
             if (state.customTopics.length > 0) {
                 selectedSubjects = state.customTopics;
-                // שיפור הפרומפט: הנחיה מפורשת לערבוב הנושאים והימנעות מידע כללי לא קשור
+                
                 promptContext = `
                 המשתמש ביקש שאלות בנושאים הבאים: ${selectedSubjects.join(", ")}.
                 עליך ליצור ${count} שאלות.
                 הנחיות קריטיות:
-                1. השאלות חייבות להיות קשורות ישירות ובאופן הדוק לנושאים הללו. אל תסטה לנושאים כלליים אם הם לא נתבקשו.
-                2. אם הנושא הוא אקטואלי או חדשותי (למשל "חדשות היום"), נסה להתמקד באירועים עדכניים ככל האפשר הידועים לך, או בשאלות על אירועים מרכזיים מהתקופה האחרונה.
-                3. גוון את השאלות בין כל הנושאים שבחר המשתמש (${selectedSubjects.join(", ")}).
-                4. אל תשאל יותר משאלה אחת או שתיים על אותו נושא ספציפי ברצף, אלא ערבב ביניהם.
+                1. השאלות חייבות להיות קשורות ישירות ובאופן הדוק לנושאים הללו.
+                2. חובה לערבב את השאלות בין כל הנושאים שבחר המשתמש (${selectedSubjects.join(", ")}).
+                3. אל תשאל יותר משאלה אחת או שתיים על אותו נושא ספציפי ברצף, אלא ערבב ביניהם.
                 `;
+
+                if (state.useGoogle) {
+                    promptContext += `
+                    4. השתמש בכלי החיפוש (Google Search) כדי למצוא מידע עדכני, חדשותי ורלוונטי ביותר לנושאים אלו.
+                    5. בסס את השאלות על המידע שמצאת בחיפוש. אם זה נושא חדשותי, שאל על אירועים שקרו לאחרונה.
+                    `;
+                }
+
             } else {
-                // מצב רגיל - בחירה אקראית מתוך הרשימה הכללית
+                // מצב רגיל
                 const shuffledSubjects = [...SUBJECTS].sort(() => 0.5 - Math.random());
-                // אם בחרנו כמות גדולה של שאלות (למשל 50), נרצה לוודא שיש מספיק נושאים לבחירה
-                // אז נשלח רשימה גדולה יותר או נבקש מה-AI לגוון
                 selectedSubjects = shuffledSubjects.slice(0, count); 
-                
-                // במקרה שcount גדול ממספר הנושאים, פשוט נשלח את כל הנושאים וה-AI יבחר
                 if (count > shuffledSubjects.length) selectedSubjects = shuffledSubjects;
 
                 promptContext = `
                 עבור כל שאלה, בחר נושא אחר מתוך הרשימה הבאה (נושא אחד לכל שאלה):
                 ${selectedSubjects.join(", ")}.
-                הקפד על גיוון מקסימלי! אל תשאל יותר משאלה אחת או שתיים על אותו נושא ספציפי.
+                הקפד על גיוון מקסימלי!
                 `;
+                
+                if (state.useGoogle) {
+                    promptContext += `
+                    השתמש בחיפוש Google כדי לוודא שהעובדות עדכניות ומדויקות, או כדי למצוא פרטי טריוויה מעניינים ופחות מוכרים.
+                    `;
+                }
             }
             
             const difficulty = currentStage < 3 ? "קל" : (currentStage < 7 ? "בינוני" : "קשה ומאתגר");
@@ -1013,22 +1132,41 @@
                 "options": ["תשובה1", "תשובה2", "תשובה3", "תשובה4"],
                 "correctIndex": 0,
                 "hint": "רמז קצר",
-                "category": "הנושא הרלוונטי (אחד מהנושאים שנבחרו)"
+                "category": "הנושא הרלוונטי"
               }
             ]
             `;
 
+            // הכנת הגוף לבקשה
+            const requestBody = {
+                prompt: prompt,
+                // שליחת דגל לשרת (במידה והוא תומך בזה) להפעלת חיפוש
+                enable_google_search: state.useGoogle,
+                // הוספת כלי חיפוש ישירות למבנה (למקרה שהשרת פשוט מעביר את הגוף הלאה)
+                tools: state.useGoogle ? [{ google_search: {} }] : []
+            };
+
             try {
-                // Modified for Vercel Serverless Function Proxy
                 const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt }) 
+                    body: JSON.stringify(requestBody) 
                 });
 
                 if (!response.ok) throw new Error("Server error");
 
                 const data = await response.json();
+                
+                // חילוץ מקורות מידע (Grounding) אם יש
+                let groundingSources = [];
+                // בדיקה במבנה המקובל של Gemini
+                if (data.candidates && data.candidates[0].groundingMetadata && data.candidates[0].groundingMetadata.groundingAttributions) {
+                    groundingSources = data.candidates[0].groundingMetadata.groundingAttributions;
+                }
+                // אם מצאנו מקורות, נציג אותם
+                if (groundingSources.length > 0) {
+                    renderSources(groundingSources);
+                }
                 
                 // ניתוח התשובה (Parsing)
                 if (data.candidates) {
@@ -1043,7 +1181,6 @@
 
             } catch (error) {
                 console.error("AI Error:", error);
-                // במקרה של שגיאה, מחזיר שאלות דמי כדי שהמשחק לא ייתקע
                 return Array(count).fill({
                     question: "שגיאה בטעינת השאלות (נסה לרענן את המשחק)",
                     options: ["אופציה 1", "אופציה 2", "אופציה 3", "אופציה 4"],
@@ -1060,7 +1197,6 @@
             lucide.createIcons();
             loadLocalAchievements();
             
-            // איפשור הוספה עם Enter
             document.getElementById('custom-topic-input').addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
                     addCustomTopic();
@@ -1127,11 +1263,11 @@
             state.score = 0;
             state.stage = 1;
             state.totalCorrect = 0;
-            state.totalWrong = 0; // Reset wrongs
+            state.totalWrong = 0; 
             state.questionInStageIndex = 0;
             state.streak = 0;
             state.questionQueue = [];
-            state.seenQuestions.clear(); // Clear history
+            state.seenQuestions.clear();
             state.lifelines = { '5050': 1, 'ai': 1, 'freeze': 1 };
             state.isFrozen = false;
             state.isShopOpen = false;
@@ -1152,20 +1288,25 @@
                 "מערבב נושאים כמו שייק פירות... 🥤"
             ];
             
-            // התאמת הודעת הטעינה אם יש נושאים מותאמים
-            if (state.customTopics.length > 0) {
-                document.getElementById('loading-msg').textContent = "חוקר את הנושאים שלך...";
+            const msgEl = document.getElementById('loading-msg');
+            const sourcesList = document.getElementById('sources-list');
+            
+            // ניקוי רשימת המקורות הקודמת
+            sourcesList.innerHTML = '';
+
+            if (state.useGoogle) {
+                msgEl.textContent = "מחפש מידע בגוגל... 🌍";
+            } else if (state.customTopics.length > 0) {
+                msgEl.textContent = "חוקר את הנושאים שלך...";
             } else {
-                document.getElementById('loading-msg').textContent = "מכין את השלב הבא...";
+                msgEl.textContent = "מכין את השלב הבא...";
             }
             
             document.getElementById('loading-tip').textContent = loadingTips[Math.floor(Math.random() * loadingTips.length)];
             
             try {
-                // Fetch batch
                 const newQuestions = await fetchQuestionsFromAI(GAME_CONFIG.fetchBatchSize, state.stage);
                 
-                // Filter duplicates
                 const uniqueQuestions = [];
                 newQuestions.forEach(q => {
                     const qKey = q.question.trim();
@@ -1176,7 +1317,6 @@
                 });
 
                 if (uniqueQuestions.length === 0 && newQuestions.length > 0) {
-                    // Safety valve if we run out of unique questions
                     state.seenQuestions.clear();
                     newQuestions.forEach(q => {
                          state.seenQuestions.add(q.question.trim());
@@ -1234,7 +1374,6 @@
         }
 
         function renderQuestion() {
-            // Check Stage Progression
             if (state.questionInStageIndex >= GAME_CONFIG.questionsPerStage) {
                 state.stage++;
                 state.questionInStageIndex = 0;
@@ -1246,7 +1385,6 @@
                 showFloatingText(`שלב ${state.stage}!`, 'general', 'var(--secondary)');
             }
 
-            // Check if queue is empty (needs fetch)
             if (state.questionQueue.length === 0) {
                 state.isFrozen = true;
                 
@@ -1256,9 +1394,18 @@
 
                 switchScreen('loading-screen');
                 loadNextBatch().then(() => {
-                    switchScreen('game-screen');
-                    state.isFrozen = false;
-                    renderQuestion();
+                    // השהייה קטנה כדי שהמשתמש יספיק לראות את המקורות אם ישנם
+                    if (state.useGoogle) {
+                        setTimeout(() => {
+                            switchScreen('game-screen');
+                            state.isFrozen = false;
+                            renderQuestion();
+                        }, 2500);
+                    } else {
+                        switchScreen('game-screen');
+                        state.isFrozen = false;
+                        renderQuestion();
+                    }
                 });
                 return;
             }
@@ -1316,7 +1463,6 @@
             state.totalCorrect++;
             state.streak++;
             
-            // Checking for Phoenix achievement (recovery from low time)
             if (state.timeLeft < 5) {
                 state.lowTimeFlag = true;
             }
@@ -1355,7 +1501,7 @@
 
         function handleWrongAnswer() {
             state.streak = 0;
-            state.totalWrong++; // Count wrong answers
+            state.totalWrong++; 
             const timePenalty = GAME_CONFIG.timePenaltyBase;
             state.timeLeft -= timePenalty;
             
@@ -1449,7 +1595,6 @@
             const s = state.stage;
             const base = GAME_CONFIG.baseShopPrices;
             
-            // Logic: Base Price + (Stage * Multiplier)
             if (type === 'time_small') return base.time_small + ((s - 1) * 50); 
             if (type === 'time_big') return base.time_big + ((s - 1) * 100);
             if (type === 'lifelines') return base.lifelines + ((s - 1) * 200);
@@ -1460,7 +1605,6 @@
             if (!state.isPlaying) return;
             state.isShopOpen = true; 
             
-            // Update prices in UI
             document.getElementById('shop-price-time-small').textContent = `₪${getShopPrice('time_small')}`;
             document.getElementById('shop-price-time-big').textContent = `₪${getShopPrice('time_big')}`;
             document.getElementById('shop-price-lifelines').textContent = `₪${getShopPrice('lifelines')}`;
@@ -1500,9 +1644,6 @@
                 unlockAchievement('spender');
                 updateHUD();
                 
-                // Recalculate price for next time immediately just in case (though it only changes on stage up)
-                // Actually price changes per stage, so we don't need to update TEXT here, it updates on openShop.
-                
                 const btn = event.currentTarget;
                 const originalBg = btn.style.background;
                 btn.style.background = "var(--success)";
@@ -1532,8 +1673,7 @@
             } else {
                 html += '<div style="font-size:0.8rem; color:gray; margin-bottom:10px; text-align:right;">לחץ על שחקן לפירוט</div>';
                 highScores.forEach((s, i) => {
-                    // Fallback calculations for old data structure
-                    const points = s.points || s.score; // Old saves used score as points
+                    const points = s.points || s.score; 
                     const money = s.money !== undefined ? s.money : s.score;
                     const correct = s.correct || 0;
                     const wrong = s.wrong || 0;
@@ -1572,7 +1712,7 @@
             const content = document.getElementById('modal-body-content');
             
             let achievementsHtml = '';
-            const playerAchievements = player.achievements || []; // List of IDs
+            const playerAchievements = player.achievements || []; 
 
             ACHIEVEMENTS_LIST.forEach(ach => {
                 const isUnlocked = playerAchievements.includes(ach.id);
@@ -1659,17 +1799,15 @@
                 name: state.playerName, 
                 date: new Date().toLocaleDateString(), 
                 money: money,
-                score: totalPoints, // Legacy field support (for sorting if needed outside)
-                points: totalPoints, // New main score field
+                score: totalPoints, 
+                points: totalPoints, 
                 correct: state.totalCorrect,
                 wrong: state.totalWrong,
                 stage: state.stage,
                 achievements: [...state.unlockedAchievements] 
             });
             
-            // Sort by points descending
             highScores.sort((a, b) => (b.points || b.score) - (a.points || a.score));
-            
             highScores = highScores.slice(0, 10); // Expanded top 10
             localStorage.setItem('triviaRushScores', JSON.stringify(highScores));
         }
