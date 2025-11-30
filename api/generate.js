@@ -6,11 +6,21 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Missing GEMINI_API_KEY in environment variables' });
   }
 
-  // 2. קבלת הפרומפט מהקליינט
-  const { prompt } = req.body;
+  // 2. קבלת הפרומפט והכלים מהקליינט
+  const { prompt, tools } = req.body;
 
   if (!prompt) {
     return res.status(400).json({ error: 'Missing prompt in request body' });
+  }
+
+  // בניית אובייקט הבקשה ל-Gemini
+  const payload = {
+    contents: [{ parts: [{ text: prompt }] }]
+  };
+
+  // הוספת כלי חיפוש אם נשלחו מהקליינט (למשל google_search)
+  if (tools && Array.isArray(tools) && tools.length > 0) {
+    payload.tools = tools;
   }
 
   try {
@@ -20,12 +30,12 @@ export default async function handler(req, res) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
+      body: JSON.stringify(payload)
     });
 
     if (!geminiResponse.ok) {
+      const errorData = await geminiResponse.json(); // נסיון לקבל פרטים נוספים על השגיאה
+      console.error('Gemini API Error Details:', errorData);
       throw new Error(`Gemini API Error: ${geminiResponse.statusText}`);
     }
 
