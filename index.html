@@ -155,6 +155,49 @@
             border-color: var(--secondary);
         }
 
+        /* סגנונות נושאים מותאמים אישית */
+        .custom-topics-container {
+            width: 80%;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            width: 100%;
+            align-items: stretch;
+        }
+
+        .topics-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: center;
+            min-height: 30px;
+        }
+
+        .topic-tag {
+            background: rgba(112, 0, 255, 0.3);
+            border: 1px solid var(--primary);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: popIn 0.3s ease-out;
+        }
+
+        .topic-remove {
+            cursor: pointer;
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        .topic-remove:hover {
+            color: #ff5577;
+        }
+
         /* מסך פתיחה */
         #menu-screen {
             justify-content: center;
@@ -659,6 +702,19 @@
         
         <input type="text" id="player-name-input" class="name-input" placeholder="הכנס את שמך..." maxlength="15">
 
+        <!-- אזור נושאים מותאמים אישית -->
+        <div class="custom-topics-container">
+            <div class="input-group">
+                <input type="text" id="custom-topic-input" class="name-input" placeholder="נושא מותאם אישית (למשל: המהפכה הצרפתית)..." style="margin-bottom: 0; width: 70%; border-radius: 0 12px 12px 0; text-align: right; padding-right: 15px;">
+                <button class="btn" onclick="addCustomTopic()" style="margin: 0; width: 30%; border-radius: 12px 0 0 12px; padding: 10px;">
+                    <i data-lucide="plus"></i> הוסף
+                </button>
+            </div>
+            <div id="custom-topics-list" class="topics-list">
+                <!-- נושאים יתווספו לכאן -->
+            </div>
+        </div>
+
         <button class="btn" onclick="startGame()">
             <i data-lucide="play"></i> התחל משחק
         </button>
@@ -839,7 +895,8 @@
             isShopOpen: false,
             lastFrameTime: 0,
             questionStartTime: 0,
-            unlockedAchievements: []
+            unlockedAchievements: [],
+            customTopics: [] // רשימת נושאים מותאמים אישית
         };
 
         let audioCtx = null; 
@@ -874,22 +931,67 @@
         }
         const sound = new SoundManager();
 
-        // --- 3. GEMINI API SERVICE (Via Vercel Function) ---
+        // --- 3. CUSTOM TOPICS LOGIC ---
+        function addCustomTopic() {
+            const input = document.getElementById('custom-topic-input');
+            const topic = input.value.trim();
+            if (topic && !state.customTopics.includes(topic)) {
+                state.customTopics.push(topic);
+                renderCustomTopics();
+                input.value = '';
+            }
+        }
+
+        function removeCustomTopic(topic) {
+            state.customTopics = state.customTopics.filter(t => t !== topic);
+            renderCustomTopics();
+        }
+
+        function renderCustomTopics() {
+            const list = document.getElementById('custom-topics-list');
+            list.innerHTML = '';
+            state.customTopics.forEach(topic => {
+                const tag = document.createElement('div');
+                tag.className = 'topic-tag';
+                tag.innerHTML = `
+                    <span>${topic}</span>
+                    <span class="topic-remove" onclick="removeCustomTopic('${topic}')">×</span>
+                `;
+                list.appendChild(tag);
+            });
+        }
+
+        // --- 4. GEMINI API SERVICE (Via Vercel Function) ---
         async function fetchQuestionsFromAI(count, currentStage) {
-            // 1. ערבוב רשימת הנושאים המלאה כדי לקבל גיוון מקסימלי
-            const shuffledSubjects = [...SUBJECTS].sort(() => 0.5 - Math.random());
-            
-            // 2. בחירת מספר נושאים כמספר השאלות הנדרשות (למשל 30)
-            // זה מבטיח שכל שאלה תקבל נושא ייחודי מתוך הרשימה שנבחרה
-            const selectedSubjects = shuffledSubjects.slice(0, count);
+            let selectedSubjects;
+            let promptContext = "";
+
+            // בדיקה אם יש נושאים מותאמים אישית
+            if (state.customTopics.length > 0) {
+                selectedSubjects = state.customTopics;
+                promptContext = `
+                המשתמש ביקש התמקות ספציפית בנושאים: ${selectedSubjects.join(", ")}.
+                אנא חקור את הנושאים הללו לעומק!
+                צור שאלות מגוונות ומעניינות שבודקות ידע נרחב, פרטים ספציפיים, הקשרים והבנה עמוקה של נושאים אלו.
+                וודא שהשאלות מכסות היבטים שונים של הנושאים שנבחרו.
+                `;
+            } else {
+                // מצב רגיל - בחירה אקראית מתוך הרשימה הכללית
+                const shuffledSubjects = [...SUBJECTS].sort(() => 0.5 - Math.random());
+                selectedSubjects = shuffledSubjects.slice(0, count);
+                promptContext = `
+                עבור כל שאלה, בחר נושא אחר מתוך הרשימה הבאה (נושא אחד לכל שאלה):
+                ${selectedSubjects.join(", ")}.
+                הקפד על גיוון מקסימלי!
+                `;
+            }
             
             const difficulty = currentStage < 3 ? "קל" : (currentStage < 7 ? "בינוני" : "קשה ומאתגר");
             
-            // בניית הפרומפט - שולחים את רשימת הנושאים המלאה שנבחרה
+            // בניית הפרומפט
             const prompt = `
             צור ${count} שאלות טריוויה בעברית.
-            הקפד על גיוון מקסימלי! עבור כל שאלה, בחר נושא אחר מתוך הרשימה הבאה (נושא אחד לכל שאלה):
-            ${selectedSubjects.join(", ")}.
+            ${promptContext}
             
             רמת קושי: ${difficulty}.
             סוג השאלות: אמריקאיות עם 4 תשובות (או נכון/לא נכון אם מתאים).
@@ -901,7 +1003,7 @@
                 "options": ["תשובה1", "תשובה2", "תשובה3", "תשובה4"],
                 "correctIndex": 0,
                 "hint": "רמז קצר",
-                "category": "הנושא שנבחר מהרשימה"
+                "category": "הנושא הרלוונטי"
               }
             ]
             `;
@@ -942,11 +1044,18 @@
             }
         }
 
-        // --- 4. GAME ENGINE ---
+        // --- 5. GAME ENGINE ---
 
         function initGame() {
             lucide.createIcons();
             loadLocalAchievements();
+            
+            // איפשור הוספה עם Enter
+            document.getElementById('custom-topic-input').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    addCustomTopic();
+                }
+            });
         }
 
         function loadLocalAchievements() {
@@ -1032,7 +1141,14 @@
                 "מי שקורא את זה יקבל מזל בחיים! 🍀",
                 "מערבב נושאים כמו שייק פירות... 🥤"
             ];
-            document.getElementById('loading-msg').textContent = "מכין את השלב הבא...";
+            
+            // התאמת הודעת הטעינה אם יש נושאים מותאמים
+            if (state.customTopics.length > 0) {
+                document.getElementById('loading-msg').textContent = "חוקר את הנושאים שלך...";
+            } else {
+                document.getElementById('loading-msg').textContent = "מכין את השלב הבא...";
+            }
+            
             document.getElementById('loading-tip').textContent = loadingTips[Math.floor(Math.random() * loadingTips.length)];
             
             try {
@@ -1263,7 +1379,7 @@
             setTimeout(() => el.remove(), 2000);
         }
 
-        // --- 5. LIFELINES, AI & SHOP ---
+        // --- 6. LIFELINES, AI & SHOP ---
 
         function useLifeline(type) {
             if (!state.isPlaying || state.lifelines[type] <= 0) return;
@@ -1388,7 +1504,7 @@
             }
         }
 
-        // --- 6. LEADERBOARD & MODAL & INSTRUCTIONS ---
+        // --- 7. LEADERBOARD & MODAL & INSTRUCTIONS ---
 
         function openLeaderboard() {
             const modal = document.getElementById('leaderboard-modal');
@@ -1548,7 +1664,7 @@
             localStorage.setItem('triviaRushScores', JSON.stringify(highScores));
         }
 
-        // --- 7. UTILS ---
+        // --- 8. UTILS ---
 
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
