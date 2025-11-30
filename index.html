@@ -916,9 +916,9 @@
             randomSubjectsCount: 3,
             // Base prices now, calculation is dynamic
             baseShopPrices: {
-                time_small: 150,
-                time_big: 350,
-                lifelines: 500
+                time_small: 100,
+                time_big: 250,
+                lifelines: 350
             }
         };
 
@@ -1597,7 +1597,7 @@
             
             if (type === 'time_small') return base.time_small + ((s - 1) * 50); 
             if (type === 'time_big') return base.time_big + ((s - 1) * 100);
-            if (type === 'lifelines') return base.lifelines + ((s - 1) * 200);
+            if (type === 'lifelines') return base.lifelines + ((s - 1) * 150);
             return 9999;
         }
 
@@ -1829,3 +1829,4 @@
     </script>
 </body>
 </html>
+
